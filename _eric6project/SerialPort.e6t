@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Tasks SYSTEM "Tasks-6.0.dtd">
+<!-- eric6 tasks file for project SerialPort -->
+<!-- Saved: 2018-07-24, 15:02:28 -->
+<Tasks version="6.0">
+  <ProjectScanFilter></ProjectScanFilter>
+  <Task priority="1" completed="False" type="1" uid="{2e2a5477-9ac4-43ff-9ca1-27a1bed9d33f}">
+    <Summary>TODO: not implemented yet</Summary>
+    <Description></Description>
+    <Created>2018-07-24, 15:01:53</Created>
+    <Resource>
+      <Filename>SerialPort.py</Filename>
+      <Linenumber>95</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" type="1" uid="{c1e56b63-fb75-4f0a-a622-3214495b9d71}">
+    <Summary>TODO: not implemented yet</Summary>
+    <Description></Description>
+    <Created>2018-07-24, 15:01:53</Created>
+    <Resource>
+      <Filename>SerialPort.py</Filename>
+      <Linenumber>106</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" type="1" uid="{30e175b2-a0fb-4b41-9b61-6744699f4588}">
+    <Summary>TODO: not implemented yet</Summary>
+    <Description></Description>
+    <Created>2018-07-24, 15:01:53</Created>
+    <Resource>
+      <Filename>SerialPort.py</Filename>
+      <Linenumber>117</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" type="1" uid="{793f7266-ab51-4fb3-a395-094de0ee5e92}">
+    <Summary>TODO: not implemented yet</Summary>
+    <Description></Description>
+    <Created>2018-07-24, 15:01:53</Created>
+    <Resource>
+      <Filename>SerialPort.py</Filename>
+      <Linenumber>128</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" type="1" uid="{1e475122-369b-45da-ad52-37e76b77a966}">
+    <Summary>TODO: not implemented yet</Summary>
+    <Description></Description>
+    <Created>2018-07-24, 15:01:53</Created>
+    <Resource>
+      <Filename>SerialPort.py</Filename>
+      <Linenumber>260</Linenumber>
+    </Resource>
+  </Task>
+</Tasks>
