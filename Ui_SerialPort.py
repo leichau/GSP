@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\Administrator\Desktop\PyQt5\SerialPort\SerialPort.ui'
+# Form implementation generated from reading ui file 'E:\tech\PyQt5\GSP\SerialPort.ui'
 #
 # Created by: PyQt5 UI code generator 5.10
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(800, 601)
         self.centralWidget = QtWidgets.QWidget(MainWindow)
         self.centralWidget.setObjectName("centralWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralWidget)
@@ -129,9 +129,9 @@ class Ui_MainWindow(object):
         self.radioButtonSendHex = QtWidgets.QRadioButton(self.groupBoxSend)
         self.radioButtonSendHex.setObjectName("radioButtonSendHex")
         self.gridLayout_4.addWidget(self.radioButtonSendHex, 0, 1, 1, 1)
-        self.checkBoxRetry = QtWidgets.QCheckBox(self.groupBoxSend)
-        self.checkBoxRetry.setObjectName("checkBoxRetry")
-        self.gridLayout_4.addWidget(self.checkBoxRetry, 1, 0, 1, 1)
+        self.checkBoxResend = QtWidgets.QCheckBox(self.groupBoxSend)
+        self.checkBoxResend.setObjectName("checkBoxResend")
+        self.gridLayout_4.addWidget(self.checkBoxResend, 1, 0, 1, 1)
         self.spinBoxTime = QtWidgets.QSpinBox(self.groupBoxSend)
         self.spinBoxTime.setButtonSymbols(QtWidgets.QAbstractSpinBox.UpDownArrows)
         self.spinBoxTime.setMinimum(10)
@@ -172,20 +172,39 @@ class Ui_MainWindow(object):
         self.toolBar = QtWidgets.QToolBar(MainWindow)
         self.toolBar.setObjectName("toolBar")
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
+        self.menuBar = QtWidgets.QMenuBar(MainWindow)
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 800, 23))
+        self.menuBar.setObjectName("menuBar")
+        self.menuTool = QtWidgets.QMenu(self.menuBar)
+        self.menuTool.setObjectName("menuTool")
+        self.menuSet = QtWidgets.QMenu(self.menuBar)
+        self.menuSet.setObjectName("menuSet")
+        self.menuHelp = QtWidgets.QMenu(self.menuBar)
+        self.menuHelp.setObjectName("menuHelp")
+        MainWindow.setMenuBar(self.menuBar)
         self.run = QtWidgets.QAction(MainWindow)
         self.run.setCheckable(True)
         self.run.setObjectName("run")
         self.stop = QtWidgets.QAction(MainWindow)
         self.stop.setObjectName("stop")
+        self.codec = QtWidgets.QAction(MainWindow)
+        self.codec.setObjectName("codec")
+        self.about = QtWidgets.QAction(MainWindow)
+        self.about.setObjectName("about")
         self.toolBar.addAction(self.run)
         self.toolBar.addAction(self.stop)
+        self.menuTool.addAction(self.codec)
+        self.menuHelp.addAction(self.about)
+        self.menuBar.addAction(self.menuSet.menuAction())
+        self.menuBar.addAction(self.menuTool.menuAction())
+        self.menuBar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "GSP"))
         self.groupBoxPort.setTitle(_translate("MainWindow", "串口设置"))
         self.labelPort.setText(_translate("MainWindow", "端    口"))
         self.labelBaud.setText(_translate("MainWindow", "波特率"))
@@ -202,11 +221,16 @@ class Ui_MainWindow(object):
         self.groupBoxSend.setTitle(_translate("MainWindow", "发送设置"))
         self.radioButtonSendASCII.setText(_translate("MainWindow", "ASCII"))
         self.radioButtonSendHex.setText(_translate("MainWindow", "HEX"))
-        self.checkBoxRetry.setText(_translate("MainWindow", "自动重发ms"))
+        self.checkBoxResend.setText(_translate("MainWindow", "自动重发ms"))
         self.pushButtonSend.setText(_translate("MainWindow", "发送"))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
+        self.menuTool.setTitle(_translate("MainWindow", "工具"))
+        self.menuSet.setTitle(_translate("MainWindow", "设置"))
+        self.menuHelp.setTitle(_translate("MainWindow", "帮助"))
         self.run.setText(_translate("MainWindow", "运行"))
         self.stop.setText(_translate("MainWindow", "停止"))
+        self.codec.setText(_translate("MainWindow", "编码转换"))
+        self.about.setText(_translate("MainWindow", "关于"))
 
 
 if __name__ == "__main__":

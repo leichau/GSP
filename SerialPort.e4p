@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project SerialPort -->
-<!-- Saved: 2018-06-12, 16:20:52 -->
-<!-- Copyright (C) 2018 ,  -->
+<!-- Saved: 2019-01-01, 19:39:36 -->
+<!-- Copyright (C) 2019 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
   <Hash>de5cbd67bf65a58db076af41aaa9a11739880252</Hash>
@@ -13,11 +13,14 @@
   <Email></Email>
   <Eol index="0"/>
   <Sources>
+    <Source>Codec.py</Source>
     <Source>SerialPort.py</Source>
+    <Source>Ui_Codec.py</Source>
     <Source>Ui_SerialPort.py</Source>
     <Source>__init__.py</Source>
   </Sources>
   <Forms>
+    <Form>Codec.ui</Form>
     <Form>SerialPort.ui</Form>
   </Forms>
   <Vcs>
