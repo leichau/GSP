@@ -86,13 +86,13 @@ class Codec(QWidget, Ui_Codec):
         #前一个'\\\\'：表示正则表达式里的一个斜杠，前两个表示转义斜杠，后两个表示要查找的斜杠
         #后一个'\\\\'放到字符串里后表现为两个字符串
         #pattern=re.sub('\\\\', r'\\', pattern)
-        pattern=r"\s*[^0-9a-fA-F]*"
+        pattern=r"[^0-9a-fA-F]+"
         inputData = []
         for x in re.split(pattern, char):
             i=0
             while x and x[i:i+2]:#切片成功
                 inputData.append(int(x[i:i+2], 16))
-                i += 2        
+                i += 2
         return bytes(inputData) #返回字节流
     
     #input为输入字符串
@@ -115,13 +115,19 @@ class Codec(QWidget, Ui_Codec):
             outputData=div.join(pre+x for x in charList)
         elif self.outputType.currentText()=='十进制':
             charList=[]
+            #中文两个字节转十进制为整体，不考虑对齐
             for x in inputData:
                 charList.append('%d'% ord(x))
             outputData=div.join(pre+x for x in charList)
         elif self.outputType.currentText()=='十六进制':
             charList=[]
             for x in inputData:
-                charList.append('%02X'% ord(x))
+                #中文为两个字节
+                if ord(x) > 0xff:
+                    temp = (ord(x)>>8)&0xff
+                    charList.append('%02X'% temp)
+                temp = ord(x) & 0xff
+                charList.append('%02X'% temp)
             outputData=div.join(pre+x for x in charList)
         elif self.outputType.currentText()=='utf-8':
             inputData=inputData.encode('utf8')

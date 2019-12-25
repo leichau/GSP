@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'E:\tech\PyQt5\GSP\Codec.ui'
+# Form implementation generated from reading ui file 'E:\workbench\PyQt\GSP\Codec.ui'
 #
-# Created by: PyQt5 UI code generator 5.10
+# Created by: PyQt5 UI code generator 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_Codec(object):
     def setupUi(self, Codec):
@@ -105,7 +107,7 @@ class Ui_Codec(object):
         self.checkBoxPreOutput.setObjectName("checkBoxPreOutput")
         self.horizontalLayout_2.addWidget(self.checkBoxPreOutput)
         self.lineEditPreOutput = QtWidgets.QLineEdit(self.groupBox_2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.lineEditPreOutput.sizePolicy().hasHeightForWidth())
@@ -158,4 +160,3 @@ if __name__ == "__main__":
     ui.setupUi(Codec)
     Codec.show()
     sys.exit(app.exec_())
-
