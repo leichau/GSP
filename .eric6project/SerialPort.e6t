@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-6.0.dtd">
 <!-- eric6 tasks file for project SerialPort -->
-<!-- Saved: 2019-12-25, 19:25:53 -->
+<!-- Saved: 2020-10-10, 15:30:10 -->
 <Tasks version="6.0">
   <ProjectScanFilter></ProjectScanFilter>
-  <Task priority="1" completed="False" type="1" uid="{8e4446e1-50f2-4be6-8fa8-fd8be8384f09}">
+  <Task priority="1" completed="False" type="1" uid="{79465848-e400-4618-bc58-21106e397984}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2019-12-25, 19:25:50</Created>
+    <Created>2020-10-10, 15:25:19</Created>
     <Resource>
       <Filename>Codec.py</Filename>
-      <Linenumber>155</Linenumber>
+      <Linenumber>177</Linenumber>
     </Resource>
   </Task>
 </Tasks>
