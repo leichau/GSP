@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
-    <height>400</height>
+    <width>900</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -115,6 +115,9 @@
           <pointsize>12</pointsize>
          </font>
         </property>
+        <property name="acceptRichText">
+         <bool>false</bool>
+        </property>
        </widget>
       </item>
      </layout>
@@ -175,6 +178,7 @@
             <pointsize>12</pointsize>
             <weight>50</weight>
             <bold>false</bold>
+            <kerning>true</kerning>
            </font>
           </property>
          </widget>
@@ -183,7 +187,11 @@
          <widget class="QCheckBox" name="checkBoxPreOutput">
           <property name="font">
            <font>
+            <family>微软雅黑</family>
             <pointsize>11</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+            <kerning>true</kerning>
            </font>
           </property>
           <property name="text">
@@ -203,6 +211,9 @@
            <font>
             <family>Consolas</family>
             <pointsize>12</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+            <kerning>true</kerning>
            </font>
           </property>
          </widget>
@@ -211,7 +222,11 @@
          <widget class="QCheckBox" name="checkBoxDivOutput">
           <property name="font">
            <font>
+            <family>微软雅黑</family>
             <pointsize>11</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+            <kerning>true</kerning>
            </font>
           </property>
           <property name="text">
@@ -230,7 +245,13 @@
          <font>
           <family>Consolas</family>
           <pointsize>12</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+          <kerning>true</kerning>
          </font>
+        </property>
+        <property name="acceptRichText">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -239,6 +260,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="imgResource.qrc"/>
+ </resources>
  <connections/>
 </ui>

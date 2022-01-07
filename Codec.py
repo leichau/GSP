@@ -3,12 +3,19 @@
 """
 Module implementing Codec.
 """
-import re
+import imgResource
+import sys, re
 from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QStatusBar, QLabel
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QIcon
 
 from Ui_Codec import Ui_Codec
-
+'''
+待解决问题
+1、中文字符串异或校验是双字节参与
+2、中文字符串和校验是双字节参与
+'''
 
 class Codec(QWidget, Ui_Codec):
     """
@@ -23,12 +30,91 @@ class Codec(QWidget, Ui_Codec):
         """
         super(Codec, self).__init__(parent)
         self.setupUi(self)
+        self.statusBar = QStatusBar(self)
+        self.verticalLayout.addWidget(self.statusBar)
+        self.InputInfo = QLabel()
+        self.InputInfo.setAlignment(Qt.AlignCenter)
+        self.InputInfo.setText('输入')
+        self.InputInfo.setStyleSheet("font: 12pt '微软雅黑'")
+        self.statusBar.addWidget(self.InputInfo, 1)
+        self.OutputInfo = QLabel()
+        self.OutputInfo.setAlignment(Qt.AlignLeft)
+        self.OutputInfo.setText('输出')
+        self.OutputInfo.setStyleSheet("font: 12pt '微软雅黑'")
+        self.statusBar.addWidget(self.OutputInfo, 1)
+        self.setWindowIcon(QIcon(':/icon/hextool.ico'))
         self.inputType.addItems(['字符串', 'gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32','十进制', '十六进制','big5'])
-        self.outputType.addItems(['字符串','gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32', '十进制', '十六进制', 'big5'])
+        self.inputType.setCurrentIndex(7)
+        self.outputType.addItems(['字符串','gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32', '十进制', '十六进制', 'big5', '异或校验', '和校验'])
     
+    #乱码处理
+    def garbled(self):
+        self.outputText.setText('')
+        rawData=self.inputText.toPlainText()
+        #将unicode字符串转成字节流
+        byteData=[]
+        for x in rawData:
+            value=ord(x)
+            byteData.append(value//256)
+            byteData.append(value%256)
+        #避开起始的残缺数据，取值范围0~4应该可以应对所有残缺可能
+        byteData=bytes(byteData)[0:]
+        #将字节流转成unicode字符串
+        rawData=''
+        i=0
+        while len(byteData)-i>=2:#切片成功
+            rawData+=chr(byteData[i]*256+byteData[i+1])
+            i += 2
+        #转换格式：unicode>>utf8
+        self.outputText.append('unicode>>utf8')
+        outputData=byteData.decode('utf8', errors='ignore')
+        self.outputText.append(outputData)
+        #转换格式：unicode>>gb18030
+        self.outputText.append('unicode>>gb18030')
+        outputData=byteData.decode('gb18030', errors='ignore')
+        self.outputText.append(outputData)
+        #转换格式：utf8>>gb18030
+        self.outputText.append('utf8>>gb18030')
+        inputData=rawData.encode('utf8')
+        outputData=inputData.decode('gb18030', errors='ignore')
+        self.outputText.append(outputData)
+        #转换格式：gb18030>>utf8
+        self.outputText.append('gb18030>>utf8')
+        inputData=rawData.encode('gb18030')
+        outputData=inputData.decode('utf8', errors='ignore')
+        self.outputText.append(outputData)
+        #转换格式：unicode>>gb18030>>utf8>>gb18030
+        self.outputText.append('unicode>>gb18030>>utf8>>gb18030')
+        inputData=rawData.encode('gb18030')
+        inputData=inputData.decode('utf8', errors='ignore')
+        byteData=[]
+        for x in inputData:
+            value=ord(x)
+            byteData.append(value//256)
+            byteData.append(value%256)
+        #避开起始的残缺数据，取值范围0~4应该可以应对所有残缺可能
+        byteData=bytes(byteData)
+        outputData=byteData.decode('gb18030', errors='ignore')
+        self.outputText.append(outputData)
+        #转换格式：unicode>>utf8>>gb18030>>utf8
+        self.outputText.append('unicode>>utf8>>gb18030>>utf8')
+        inputData=rawData.encode('utf8')
+        inputData=inputData.decode('gb18030', errors='ignore')
+        byteData=[]
+        for x in inputData:
+            value=ord(x)
+            byteData.append(value//256)
+            byteData.append(value%256)
+        #避开起始的残缺数据，取值范围0~4应该可以应对所有残缺可能
+        byteData=bytes(byteData)
+        outputData=byteData.decode('utf8', errors='ignore')
+        self.outputText.append(outputData)
+
     def convert(self):
         if self.inputType.currentText()=='字符串':
             inputData=self.inputText.toPlainText()
+            inputData = inputData.replace('\n', '\r\n')
+            self.InputInfo.setText('输入: %d' % len(inputData))
         elif self.inputType.currentText()=='unicode':
             inputData=''
             charList=self.hexExtract()
@@ -74,6 +160,7 @@ class Codec(QWidget, Ui_Codec):
                 if int(x)//256:
                     inputData.append(int(x)//256)
                 inputData.append(int(x)%256)
+        self.InputInfo.setText('输入: %d' % len(inputData))
         return bytes(inputData) #返回字节流
     
     #十六进制输入数据提取，返回字节流
@@ -93,6 +180,7 @@ class Codec(QWidget, Ui_Codec):
             while x and x[i:i+2]:#切片成功
                 inputData.append(int(x[i:i+2], 16))
                 i += 2
+        self.InputInfo.setText('输入: %d' % len(inputData))
         return bytes(inputData) #返回字节流
     
     #input为输入字符串
@@ -106,18 +194,21 @@ class Codec(QWidget, Ui_Codec):
         else:
             pre=''  
         if self.outputType.currentText()=='字符串':
+            self.OutputInfo.setText('输出: %d' % len(inputData))
             outputData=inputData
         elif self.outputType.currentText()=='unicode':
             charList=[]
             for x in inputData:
                 value=ord(x)
                 charList.append('%02X%02X'%(value//256, value%256))
+            self.OutputInfo.setText('输出: %d' % (len(charList)*2))
             outputData=div.join(pre+x for x in charList)
         elif self.outputType.currentText()=='十进制':
             charList=[]
             #中文两个字节转十进制为整体，不考虑对齐
             for x in inputData:
                 charList.append('%d'% ord(x))
+            self.OutputInfo.setText('输出: %d' % len(charList))
             outputData=div.join(pre+x for x in charList)
         elif self.outputType.currentText()=='十六进制':
             charList=[]
@@ -128,23 +219,58 @@ class Codec(QWidget, Ui_Codec):
                     charList.append('%02X'% temp)
                 temp = ord(x) & 0xff
                 charList.append('%02X'% temp)
+            self.OutputInfo.setText('输出: %d' % len(charList))
             outputData=div.join(pre+x for x in charList)
         elif self.outputType.currentText()=='utf-8':
             inputData=inputData.encode('utf8')
+            self.OutputInfo.setText('输出: %d' % len(inputData))
             outputData=div.join(pre+"%02X" % x for x in inputData)
         elif self.outputType.currentText()=='utf-16':
             inputData=inputData.encode('utf16')
+            self.OutputInfo.setText('输出: %d' % len(inputData))
             outputData=div.join(pre+"%02X" % x for x in inputData)
         elif self.outputType.currentText()=='utf-32':
             inputData=inputData.encode('utf32')
+            self.OutputInfo.setText('输出: %d' % len(inputData))
             outputData=div.join(pre+"%02X" % x for x in inputData)
         elif self.outputType.currentText()=='gb2312\\gbk\\gb18030':
             inputData=inputData.encode('gb18030')
+            self.OutputInfo.setText('输出: %d' % len(inputData))
             outputData=div.join(pre+"%02X" % x for x in inputData)
         elif self.outputType.currentText()=='big5':
             #有不识别的数据替换为'?'
             inputData=inputData.encode('big5', errors='replace')
+            self.OutputInfo.setText('输出: %d' % len(inputData))
             outputData=div.join(pre+"%02X" % x for x in inputData)
+        elif self.outputType.currentText()=='异或校验':
+            xor = 0
+            charList=[]
+            for x in inputData:
+                if ord(x) > 0xff:
+                    temp = (ord(x)>>8)&0xff
+                    xor = xor ^ temp
+                    charList.append('%02X'% temp)
+                temp = ord(x) & 0xff
+                xor = xor ^ temp
+                charList.append('%02X'% temp)
+            charList.append('%02X'% xor)
+            self.OutputInfo.setText('输出: %d' % len(charList))
+            outputData=div.join(pre+x for x in charList)
+        elif self.outputType.currentText()=='和校验':
+            checksum = 0
+            charList=[]
+            for x in inputData:
+                if ord(x) > 0xff:
+                    temp = (ord(x)>>8)&0xff
+                    checksum = checksum + temp
+                    charList.append('%02X'% temp)
+                temp = ord(x) & 0xff
+                checksum = checksum + temp
+                charList.append('%02X'% temp)
+            checksum = checksum&0xFF
+            charList.append('%02X'% checksum)
+            self.OutputInfo.setText('输出: %d' % len(charList))
+            outputData=div.join(pre+x for x in charList)
         self.outputText.setText(outputData)
     
     @pyqtSlot()
@@ -160,4 +286,14 @@ class Codec(QWidget, Ui_Codec):
         """
         Slot documentation goes here.
         """
-        self.convert()
+        if True:
+            self.convert()
+        else:
+            #乱码处理
+            self.garbled()
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    codec = Codec()
+    codec.show()
+    sys.exit(app.exec_())
