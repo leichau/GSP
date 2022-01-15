@@ -3,11 +3,10 @@
 """
 Module implementing SerialPort.
 """
-import imgResource
 import serial, serial.tools.list_ports, threading, re
 import sys, time
 from datetime import datetime
-from PyQt5.QtCore import pyqtSlot, QAbstractNativeEventFilter, QSettings, pyqtSignal
+from PyQt5.QtCore import pyqtSlot, QAbstractNativeEventFilter, QSettings, pyqtSignal, QSize, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QFontDialog
 from PyQt5.QtGui import QTextCursor, QFont, QIcon
 from io import StringIO
@@ -58,7 +57,10 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         super(SerialPort, self).__init__(parent)
         self.setupUi(self)
 
-        # self.setWindowIcon(QIcon(':/icon/hextool.ico'))
+        # 去掉标题栏
+        #self.setWindowFlags(Qt.FramelessWindowHint)
+        # self.setWindowIcon(QIcon(':/icon/resource/icon/hextool.ico'))
+        self.toolBar.setIconSize(QSize(40,40))
         self.settings = QSettings("./user.ini", QSettings.IniFormat)
         #接收栏字体
         textBrowserFont = self.settings.value('Font')
@@ -304,6 +306,10 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             textCursor = self.textBrowser.textCursor()
             textCursor.movePosition(QTextCursor.End)
             lineHomeAdd = 0
+            # html 特殊字符处理
+            data = re.sub('(<)', '&lt;', data)
+            data = re.sub('(>)', '&gt;', data)
+            data = re.sub('(&)', '&amp;', data)
             received = jsonHead['Received']
             timeEnable = jsonHead['TimeEnable']
             if timeEnable:
@@ -545,12 +551,14 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if self.port not in portNameList:#端口移除
             self.serial_close()
             if self.run.isChecked():
+                self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
                 self.run.setChecked(False)
         else:
             print('port_update', self.port)
             print(portNameList)
             self.comboBoxPort.setCurrentIndex(portNameList.index(self.port))
             if self.actionAutoConnect.isChecked() and self.serial_open():
+                self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
                 self.run.setChecked(True)
 
     def serial_port_set(self, port):
@@ -646,14 +654,22 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         if checked:
             if self.port == None:
+                self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
                 self.run.setChecked(False)
             else:
                 if self.serial.isOpen() and self.serial.port == self.port:
                     #self.serial_recvThreadStart()
-                    pass
+                    self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
                 else:
                     if not self.serial_open():
+                        self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
                         self.run.setChecked(False)
+                    else:
+                        self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
+                        print('Run: pause!')
+        else:
+            self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
+            print('Run checked', checked)
 
     @pyqtSlot()
     def on_stop_triggered(self):
@@ -661,6 +677,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         Slot documentation goes here.
         """
         self.actionAutoConnect.setChecked(False)
+        self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
         self.run.setChecked(False)
         self.serial_close()
 
@@ -860,8 +877,10 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.settings.setValue('Auto', self.port)
                 # self.port_update()
                 if self.serial_port_set(self.port) and self.serial_open():
+                    self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
                     self.run.setChecked(True)
                 else:
+                    self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
                     self.run.setChecked(False)
                 return
             else:
@@ -1066,7 +1085,7 @@ class SysEventFilter(QAbstractNativeEventFilter):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(':/icon/hextool.ico'))
+    app.setWindowIcon(QIcon(':/icon/resource/icon/hextool.ico'))
     dlg = SerialPort()
     dlg.show()
     sysMsg = SysEventFilter(dlg)

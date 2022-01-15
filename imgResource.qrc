@@ -1,5 +1,11 @@
 <RCC>
   <qresource prefix="icon">
-    <file>hextool.ico</file>
+    <file>resource/icon/codec48.png</file>
+    <file>resource/icon/hextool.ico</file>
+    <file>resource/icon/trist48.png</file>
+    <file>resource/icon/pause48.png</file>
+    <file>resource/icon/rect48.png</file>
+    <file>resource/icon/link48.png</file>
+    <file>resource/icon/clean48.png</file>
   </qresource>
 </RCC>

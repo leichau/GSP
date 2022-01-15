@@ -643,6 +643,7 @@
    <addaction name="stop"/>
    <addaction name="actionAutoConnect"/>
    <addaction name="clear"/>
+   <addaction name="codec"/>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -657,7 +658,6 @@
     <property name="title">
      <string>工具</string>
     </property>
-    <addaction name="codec"/>
    </widget>
    <widget class="QMenu" name="menuSet">
     <property name="title">
@@ -681,16 +681,28 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="imgResource.qrc">
+     <normaloff>:/icon/resource/icon/trist48.png</normaloff>:/icon/resource/icon/trist48.png</iconset>
+   </property>
    <property name="text">
     <string>运行</string>
    </property>
   </action>
   <action name="stop">
+   <property name="icon">
+    <iconset resource="imgResource.qrc">
+     <normaloff>:/icon/resource/icon/rect48.png</normaloff>:/icon/resource/icon/rect48.png</iconset>
+   </property>
    <property name="text">
     <string>停止</string>
    </property>
   </action>
   <action name="codec">
+   <property name="icon">
+    <iconset resource="imgResource.qrc">
+     <normaloff>:/icon/resource/icon/codec48.png</normaloff>:/icon/resource/icon/codec48.png</iconset>
+   </property>
    <property name="text">
     <string>编码转换</string>
    </property>
@@ -701,6 +713,10 @@
    </property>
   </action>
   <action name="clear">
+   <property name="icon">
+    <iconset resource="imgResource.qrc">
+     <normaloff>:/icon/resource/icon/clean48.png</normaloff>:/icon/resource/icon/clean48.png</iconset>
+   </property>
    <property name="text">
     <string>清屏</string>
    </property>
@@ -712,11 +728,15 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="imgResource.qrc">
+     <normaloff>:/icon/resource/icon/link48.png</normaloff>:/icon/resource/icon/link48.png</iconset>
+   </property>
    <property name="text">
     <string>自动连接</string>
    </property>
    <property name="toolTip">
-    <string>auto connnect</string>
+    <string>自动连接</string>
    </property>
   </action>
   <action name="optionView">
@@ -750,6 +770,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="imgResource.qrc"/>
+ </resources>
  <connections/>
 </ui>
