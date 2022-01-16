@@ -5,7 +5,7 @@ Module implementing Codec.
 """
 import sys, re
 from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QWidget, QStatusBar, QLabel
+from PyQt5.QtWidgets import QMainWindow, QStatusBar, QLabel
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIcon
 
@@ -16,7 +16,7 @@ from Ui_Codec import Ui_Codec
 2、中文字符串和校验是双字节参与
 '''
 
-class Codec(QWidget, Ui_Codec):
+class Codec(QMainWindow, Ui_Codec):
     """
     Class documentation goes here.
     """
@@ -29,8 +29,7 @@ class Codec(QWidget, Ui_Codec):
         """
         super(Codec, self).__init__(parent)
         self.setupUi(self)
-        self.statusBar = QStatusBar(self)
-        self.verticalLayout.addWidget(self.statusBar)
+
         self.InputInfo = QLabel()
         self.InputInfo.setAlignment(Qt.AlignCenter)
         self.InputInfo.setText('输入')
@@ -41,7 +40,7 @@ class Codec(QWidget, Ui_Codec):
         self.OutputInfo.setText('输出')
         self.OutputInfo.setStyleSheet("font: 12pt '微软雅黑'")
         self.statusBar.addWidget(self.OutputInfo, 1)
-        self.setWindowIcon(QIcon(':/icon/resource/icon/hextool.ico'))
+        self.setWindowIcon(QIcon(':/icon/resource/icon/codec48.png'))
         self.inputType.addItems(['字符串', 'gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32','十进制', '十六进制','big5'])
         self.inputType.setCurrentIndex(7)
         self.outputType.addItems(['字符串','gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32', '十进制', '十六进制', 'big5', '异或校验', '和校验'])
@@ -293,6 +292,7 @@ class Codec(QWidget, Ui_Codec):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(':/icon/resource/icon/codec256.ico'))
     codec = Codec()
     codec.show()
     sys.exit(app.exec_())
