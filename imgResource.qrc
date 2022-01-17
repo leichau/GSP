@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icon">
+    <file>resource/icon/view48.png</file>
+    <file>resource/icon/info48.png</file>
     <file>resource/icon/trist48.png</file>
     <file>resource/icon/pause48.png</file>
     <file>resource/icon/rect48.png</file>

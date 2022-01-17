@@ -5,7 +5,7 @@ Module implementing Codec.
 """
 import sys, re
 from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QMainWindow, QStatusBar, QLabel
+from PyQt5.QtWidgets import QMainWindow, QLabel
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIcon
 
@@ -40,7 +40,7 @@ class Codec(QMainWindow, Ui_Codec):
         self.OutputInfo.setText('输出')
         self.OutputInfo.setStyleSheet("font: 12pt '微软雅黑'")
         self.statusBar.addWidget(self.OutputInfo, 1)
-        self.setWindowIcon(QIcon(':/icon/resource/icon/codec48.png'))
+        self.setWindowIcon(QIcon(':/icon/resource/icon/codec256.ico'))
         self.inputType.addItems(['字符串', 'gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32','十进制', '十六进制','big5'])
         self.inputType.setCurrentIndex(7)
         self.outputType.addItems(['字符串','gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32', '十进制', '十六进制', 'big5', '异或校验', '和校验'])

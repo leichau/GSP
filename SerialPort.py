@@ -6,8 +6,8 @@ Module implementing SerialPort.
 import serial, serial.tools.list_ports, threading, re
 import sys, time
 from datetime import datetime
-from PyQt5.QtCore import pyqtSlot, QAbstractNativeEventFilter, QSettings, pyqtSignal, QSize, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QFontDialog
+from PyQt5.QtCore import pyqtSlot, QAbstractNativeEventFilter, QSettings, pyqtSignal, QSize
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QFontDialog, QMenu, QToolButton
 from PyQt5.QtGui import QTextCursor, QFont, QIcon
 from io import StringIO
 import json
@@ -134,6 +134,12 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.checkBoxBeep.setChecked(False)
         #发送栏
+        optionView = self.settings.value('OptionView')
+        if optionView and optionView == '0':
+            self.optionView.setChecked(False)
+        else:
+            self.optionView.setChecked(True)
+        #发送栏
         sendView = self.settings.value('SendView')
         if sendView and sendView == '0':
             self.sendView.setChecked(False)
@@ -191,6 +197,15 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.resendThread = threading.Thread(target=self.serial_resendThread, name='resendThread')
         #cgitb.enable(0, None, 5, '')
         #cgitb.enable(format='text')
+        viewMenu = QMenu("view")
+        viewMenu.addAction(self.optionView)
+        viewMenu.addAction(self.sendView)
+        toolButton = QToolButton()
+        toolButton.setMenu(viewMenu)
+        toolButton.setToolTip("视图")
+        toolButton.setPopupMode(QToolButton.MenuButtonPopup)
+        toolButton.setIcon(QIcon(':/icon/resource/icon/view48.png'))
+        self.toolBar.insertWidget(self.codec, toolButton)
 
     def closeEvent(self, event):
         if event.type() == 19:

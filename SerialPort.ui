@@ -633,6 +633,12 @@
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
+   <property name="iconSize">
+    <size>
+     <width>40</width>
+     <height>40</height>
+    </size>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -643,7 +649,9 @@
    <addaction name="stop"/>
    <addaction name="actionAutoConnect"/>
    <addaction name="clear"/>
+   <addaction name="separator"/>
    <addaction name="codec"/>
+   <addaction name="about"/>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -671,7 +679,6 @@
     <property name="title">
      <string>帮助</string>
     </property>
-    <addaction name="about"/>
    </widget>
    <addaction name="menuSet"/>
    <addaction name="menuTool"/>
@@ -708,6 +715,10 @@
    </property>
   </action>
   <action name="about">
+   <property name="icon">
+    <iconset resource="imgResource.qrc">
+     <normaloff>:/icon/resource/icon/info48.png</normaloff>:/icon/resource/icon/info48.png</iconset>
+   </property>
    <property name="text">
     <string>关于</string>
    </property>
@@ -744,7 +755,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>侧边栏</string>
