@@ -650,8 +650,8 @@
    <addaction name="actionAutoConnect"/>
    <addaction name="clear"/>
    <addaction name="separator"/>
+   <addaction name="option"/>
    <addaction name="codec"/>
-   <addaction name="about"/>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -717,7 +717,7 @@
   <action name="about">
    <property name="icon">
     <iconset resource="imgResource.qrc">
-     <normaloff>:/icon/resource/icon/info48.png</normaloff>:/icon/resource/icon/info48.png</iconset>
+     <normaloff>:/icon/resource/icon/setting48.png</normaloff>:/icon/resource/icon/setting48.png</iconset>
    </property>
    <property name="text">
     <string>关于</string>
@@ -778,6 +778,18 @@
    </property>
    <property name="toolTip">
     <string>字体</string>
+   </property>
+  </action>
+  <action name="option">
+   <property name="icon">
+    <iconset resource="imgResource.qrc">
+     <normaloff>:/icon/resource/icon/setting48.png</normaloff>:/icon/resource/icon/setting48.png</iconset>
+   </property>
+   <property name="text">
+    <string>设置</string>
+   </property>
+   <property name="toolTip">
+    <string>设置</string>
    </property>
   </action>
  </widget>

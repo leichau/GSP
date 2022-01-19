@@ -17,6 +17,7 @@ from Ui_SerialPort import Ui_MainWindow
 from Codec import Codec
 from About import About
 from AutoConnect import AutoConnect
+from option import Option
 
 '''
 待解决问题
@@ -205,7 +206,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         toolButton.setToolTip("视图")
         toolButton.setPopupMode(QToolButton.MenuButtonPopup)
         toolButton.setIcon(QIcon(':/icon/resource/icon/view48.png'))
-        self.toolBar.insertWidget(self.codec, toolButton)
+        self.toolBar.insertWidget(self.option, toolButton)
 
     def closeEvent(self, event):
         if event.type() == 19:
@@ -322,9 +323,9 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             textCursor.movePosition(QTextCursor.End)
             lineHomeAdd = 0
             # html 特殊字符处理
+            data = re.sub('(&)', '&amp;', data)
             data = re.sub('(<)', '&lt;', data)
             data = re.sub('(>)', '&gt;', data)
-            data = re.sub('(&)', '&amp;', data)
             received = jsonHead['Received']
             timeEnable = jsonHead['TimeEnable']
             if timeEnable:
@@ -922,6 +923,14 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         aboutSoft.show()
         aboutSoft.softInfo.verticalScrollBar().setValue(0)
+
+    @pyqtSlot()
+    def on_option_triggered(self):
+        """
+        Slot documentation goes here.
+        """
+        self.option = Option()
+        self.option.show()
 
 #    def nativeEventFilter(self, eventType, message):
 #        print('hello')
