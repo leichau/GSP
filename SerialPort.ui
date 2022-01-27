@@ -37,7 +37,7 @@
      <number>3</number>
     </property>
     <item>
-     <layout class="QVBoxLayout" name="optionLayout">
+     <layout class="QVBoxLayout" name="sideLayout">
       <property name="spacing">
        <number>7</number>
       </property>
@@ -671,7 +671,7 @@
     <property name="title">
      <string>设置</string>
     </property>
-    <addaction name="optionView"/>
+    <addaction name="sideView"/>
     <addaction name="sendView"/>
     <addaction name="actionFont"/>
    </widget>
@@ -750,7 +750,7 @@
     <string>自动连接</string>
    </property>
   </action>
-  <action name="optionView">
+  <action name="sideView">
    <property name="checkable">
     <bool>true</bool>
    </property>

@@ -56,3 +56,4 @@ class Option(QWidget, Ui_Option):
         font,ok=QFontDialog.getFont()
         if ok:
             print(font.family(), font.pointSize(), font.weight())
+            self.fontLine.setText("%s, %d"%(font.family(), font.pointSize()))

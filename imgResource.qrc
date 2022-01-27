@@ -1,7 +1,6 @@
 <RCC>
   <qresource prefix="icon">
     <file>resource/icon/view48.png</file>
-    <file>resource/icon/info48.png</file>
     <file>resource/icon/trist48.png</file>
     <file>resource/icon/setting48.png</file>
     <file>resource/icon/pause48.png</file>
@@ -10,6 +9,6 @@
     <file>resource/icon/clean48.png</file>
     <file>resource/icon/codec48.png</file>
     <file>resource/icon/codec256.ico</file>
-    <file>resource/icon/hextool.ico</file>
+    <file>resource/icon/serial256.ico</file>
   </qresource>
 </RCC>

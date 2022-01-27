@@ -59,8 +59,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         # 去掉标题栏
-        #self.setWindowFlags(Qt.FramelessWindowHint)
-        # self.setWindowIcon(QIcon(':/icon/resource/icon/hextool.ico'))
+        # self.setWindowFlags(Qt.FramelessWindowHint)
+        # self.setWindowIcon(QIcon(':/icon/resource/icon/serial256.ico'))
         self.toolBar.setIconSize(QSize(40,40))
         self.settings = QSettings("./user.ini", QSettings.IniFormat)
         #接收栏字体
@@ -134,12 +134,12 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.checkBoxBeep.setChecked(True)
         else:
             self.checkBoxBeep.setChecked(False)
-        #发送栏
-        optionView = self.settings.value('OptionView')
-        if optionView and optionView == '0':
-            self.optionView.setChecked(False)
+        #设置栏
+        sideView = self.settings.value('sideView')
+        if sideView and sideView == '0':
+            self.sideView.setChecked(False)
         else:
-            self.optionView.setChecked(True)
+            self.sideView.setChecked(True)
         #发送栏
         sendView = self.settings.value('SendView')
         if sendView and sendView == '0':
@@ -199,14 +199,15 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         #cgitb.enable(0, None, 5, '')
         #cgitb.enable(format='text')
         viewMenu = QMenu("view")
-        viewMenu.addAction(self.optionView)
+        viewMenu.addAction(self.sideView)
         viewMenu.addAction(self.sendView)
-        toolButton = QToolButton()
-        toolButton.setMenu(viewMenu)
-        toolButton.setToolTip("视图")
-        toolButton.setPopupMode(QToolButton.MenuButtonPopup)
-        toolButton.setIcon(QIcon(':/icon/resource/icon/view48.png'))
-        self.toolBar.insertWidget(self.option, toolButton)
+        self.viewLayout = QToolButton()
+        self.viewLayout.setMenu(viewMenu)
+        self.viewLayout.setToolTip("视图")
+        self.viewLayout.setPopupMode(QToolButton.MenuButtonPopup)
+        self.viewLayout.setIcon(QIcon(':/icon/resource/icon/view48.png'))
+        self.toolBar.insertWidget(self.option, self.viewLayout)
+        self.viewLayout.clicked.connect(self.on_viewLayout_clicked)
 
     def closeEvent(self, event):
         if event.type() == 19:
@@ -571,7 +572,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.run.setChecked(False)
         else:
             print('port_update', self.port)
-            print(portNameList)
+            # print(portNameList)
             self.comboBoxPort.setCurrentIndex(portNameList.index(self.port))
             if self.actionAutoConnect.isChecked() and self.serial_open():
                 self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
@@ -732,6 +733,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.port = list(port_list)[index][0]
         print('comboBoxPort', self.port)
         if self.actionAutoConnect.isChecked():
+            self.AutoConnectPort = self.port
             self.settings.setValue('Auto', self.port)
         if self.run.isChecked():
             self.serial_close()
@@ -941,7 +943,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
 #        return False, 0
 
     @pyqtSlot(bool)
-    def on_optionView_toggled(self, p0):
+    def on_sideView_toggled(self, p0):
         """
         Slot documentation goes here.
 
@@ -949,11 +951,11 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         @type bool
         """
         if p0:
-            self.horizontalLayout.insertLayout(0, self.optionLayout)
+            self.horizontalLayout.insertLayout(0, self.sideLayout)
         else:
             #horizontalLayout为应用于centralWidget的布局，从horizontalLayout删除即为从centralWidget删除
-            self.horizontalLayout.removeItem(self.optionLayout)
-        print('option view:', p0)
+            self.horizontalLayout.removeItem(self.sideLayout)
+        print('side view:', p0)
 
     @pyqtSlot(bool)
     def on_sendView_toggled(self, p0):
@@ -968,6 +970,33 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.settings.setValue('SendView', 1)
         else:
             self.settings.setValue('SendView', 0)
+
+    @pyqtSlot()
+    def on_viewLayout_clicked(self):
+        """
+        Slot documentation goes here.
+        """
+        #设置栏
+        sideView = self.sideView.isChecked()
+        #发送栏
+        sendView = self.sendView.isChecked()
+        if sideView == False and sendView:
+            if self.horizontalLayout.indexOf(self.sideLayout) == -1:
+                self.horizontalLayout.insertLayout(0, self.sideLayout)
+            else:
+                self.horizontalLayout.removeItem(self.sideLayout)
+        elif sideView and sendView == False:
+            if self.dataLayout.indexOf(self.sendBox) == -1:
+                self.view_send_visible(True)
+            else:
+                self.view_send_visible(False)
+        else:
+            if self.horizontalLayout.indexOf(self.sideLayout) == -1:
+                self.horizontalLayout.insertLayout(0, self.sideLayout)
+                self.view_send_visible(True)
+            else:
+                self.horizontalLayout.removeItem(self.sideLayout)
+                self.view_send_visible(False)
 
     @pyqtSlot()
     def on_actionFont_triggered(self):
@@ -1109,7 +1138,7 @@ class SysEventFilter(QAbstractNativeEventFilter):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(':/icon/resource/icon/hextool.ico'))
+    app.setWindowIcon(QIcon(':/icon/resource/icon/serial256.ico'))
     dlg = SerialPort()
     dlg.show()
     sysMsg = SysEventFilter(dlg)
