@@ -660,41 +660,7 @@
    <addaction name="option"/>
    <addaction name="codec"/>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1023</width>
-     <height>26</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuTool">
-    <property name="title">
-     <string>工具</string>
-    </property>
-   </widget>
-   <widget class="QMenu" name="menuSet">
-    <property name="title">
-     <string>设置</string>
-    </property>
-    <addaction name="sideView"/>
-    <addaction name="sendView"/>
-    <addaction name="actionFont"/>
-   </widget>
-   <widget class="QMenu" name="menuHelp">
-    <property name="title">
-     <string>帮助</string>
-    </property>
-   </widget>
-   <addaction name="menuSet"/>
-   <addaction name="menuTool"/>
-   <addaction name="menuHelp"/>
-  </widget>
   <action name="run">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="icon">
     <iconset resource="imgResource.qrc">
      <normaloff>:/icon/resource/icon/trist48.png</normaloff>:/icon/resource/icon/trist48.png</iconset>
@@ -777,14 +743,6 @@
    </property>
    <property name="text">
     <string>发送项</string>
-   </property>
-  </action>
-  <action name="actionFont">
-   <property name="text">
-    <string>字体</string>
-   </property>
-   <property name="toolTip">
-    <string>字体</string>
    </property>
   </action>
   <action name="option">

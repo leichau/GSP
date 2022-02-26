@@ -15,7 +15,7 @@ class Option(QWidget, Ui_Option):
     """
     Class documentation goes here.
     """
-    def __init__(self, parent=None):
+    def __init__(self, master=None, parent=None):
         """
         Constructor
         
@@ -47,13 +47,14 @@ class Option(QWidget, Ui_Option):
         self.softInfo.append('编码器：完成编码转换功能')
         self.softInfo.append('\n0.1.1\t2017')
         self.softInfo.append('串口：完成串口基本收发功能')
+        self.master = master
 
     @pyqtSlot()
     def on_fontButton_clicked(self):
         """
         Slot documentation goes here.
         """
-        font,ok=QFontDialog.getFont()
+        font, ok=QFontDialog.getFont(self.master.textBrowser.font())
         if ok:
-            print(font.family(), font.pointSize(), font.weight())
-            self.fontLine.setText("%s, %d"%(font.family(), font.pointSize()))
+            self.fontLine.setText("%s, %d, %d"%(font.family(), font.pointSize(), font.weight()))
+            self.master.serial_recvFont(font)

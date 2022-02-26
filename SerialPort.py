@@ -40,6 +40,10 @@ from option import Option
 13、数据量达到限值清除时，异常退出
 '''
 
+SERIAL_STOP = 0
+SERIAL_RUN  = 1
+SERIAL_PAUSE = 2
+
 class SerialPort(QMainWindow, Ui_MainWindow):
     """
     Class documentation goes here.
@@ -98,6 +102,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.radioButtonSendHex.setChecked(True)
         else:
             self.radioButtonSendASCII.setChecked(True)
+        # 运行状态
+        self.runStates = SERIAL_STOP
         #自动连接端口
         AutoConnectPort = self.settings.value('Auto')
         if AutoConnectPort:
@@ -184,6 +190,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.InfoTx = QLabel()
         self.InfoTx.setText('TX: {} Bytes'.format(self.txCount))
         self.statusBar.addWidget(self.InfoTx, 1)
+        # 缓存流
         self.memStream = StringIO()
         self.streamCursor = 0
         self.sigDispaly.connect(self.stream_displayRender)
@@ -191,6 +198,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.sigLcdNum.connect(self.lcdNumUpdate)
         self.resendThreadState = False
         self.resendThread = threading.Thread(target=self.serial_resendThread, name='resendThread')
+        # 视图工具
         viewMenu = QMenu("view")
         viewMenu.addAction(self.sideView)
         viewMenu.addAction(self.sendView)
@@ -207,10 +215,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if event.type() != QEvent.WindowStateChange:
             return
         if self.windowState() == Qt.WindowNoState:
-            if self.autoScroll:
-                #self.textBrowser.moveCursor(QTextCursor.End)
-                max = self.textBrowser.verticalScrollBar().maximum()
-                self.textBrowser.verticalScrollBar().setSliderPosition(max)
+            self.serial_recvAutoScroll()
         print('changeEvent: %d %08X'%(event.type(), self.windowState()))
 
     def closeEvent(self, event):
@@ -248,7 +253,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.memStream.write(data)
 
     def stream_displayRender(self):
-        if not self.run.isChecked():
+        if self.runStates != SERIAL_RUN:
             return
         if not self.memStream.closed:
             self.memStream.seek(0, 2)
@@ -321,6 +326,21 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.streamCursor = streamRead
             self.memStream.seek(0, 2)
             offset = self.memStream.tell()
+
+    def serial_recvAutoScroll(self):
+        if self.autoScroll:
+            #self.textBrowser.moveCursor(QTextCursor.End)
+            max = self.textBrowser.verticalScrollBar().maximum()
+            self.textBrowser.verticalScrollBar().setSliderPosition(max)
+
+    def serial_recvFont(self, font):
+        """
+        Slot documentation goes here.
+        """
+        print('serial_receive_font', font.family(), font.pointSize(), font.weight())
+        self.textBrowser.setFont(font)
+        font = '{},{},{}'.format(font.family(), font.pointSize(), font.weight())
+        self.settings.setValue('Font', font)
 
     def serial_recvThread(self):
         #print(threading.current_thread().name, "start")
@@ -421,7 +441,6 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         for i in range(0, count):
             if self.comboBoxSend.itemText(i) == item:
                 self.comboBoxSend.removeItem(i)
-                print('serial_send_history_add: delete', item)
                 break
         self.comboBoxSend.insertItem(0, item)
         print('serial_send_history_add:', item)
@@ -492,7 +511,13 @@ class SerialPort(QMainWindow, Ui_MainWindow):
 
     def serial_open(self):
         if self.serial.isOpen():
-            if self.serial.port == self.port:
+            if  self.serial.port == self.port and \
+                self.serial.baudrate == self.baudrate and \
+                self.serial.bytesize == self.bytesize and \
+                self.serial.parity == self.parity and \
+                self.serial.stopbits == self.stopbits and \
+                self.serial.xonxoff == self.xonxoff and \
+                self.serial.rtscts == self.rtscts:
                 print('serial_open: opend')
                 return True
             else:
@@ -517,17 +542,24 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.InfoPort.setStyleSheet("color: green;font: 9pt 'Arial'")
         self.InfoPort.setText('{} OPENED {} {} {}'.format(self.port, self.baudrate, self.bytesize, self.parity))
         self.serial_recvThreadStart()
+        if self.runStates == SERIAL_STOP:
+            self.runStates = SERIAL_RUN
+            self.run.setIcon(QIcon(':/icon/resource/icon/pause_bk48.png'))
         return True
 
     def serial_close(self):
         if self.serial.isOpen():
+            port = self.serial.port
             self.serial_recvThreadEnd()
             self.serial.close()
             self.InfoPort.setStyleSheet("color: red;font: 9pt 'Arial'")
-            self.InfoPort.setText('{} CLOSED'.format(self.port))
-            print('serial_close:', self.port)
+            self.InfoPort.setText('{} CLOSED'.format(port))
+            print('serial_close:', port)
         else:
             print('serial_close: closed')
+        if self.runStates != SERIAL_STOP:
+            self.runStates = SERIAL_STOP
+            self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
 
     #端口刷新
     def serial_port_refresh(self):
@@ -540,19 +572,18 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             port = list(port_list_0)
             self.comboBoxPort.addItem(port[1])
             portNameList.append(port[0])
+        if self.port is None:
+            if self.comboBoxPort.count():
+                self.port = portNameList[self.comboBoxPort.currentIndex()]
         if self.port not in portNameList:#端口移除
             print('serial_port_refresh: remove', self.port)
             self.serial_close()
-            if self.run.isChecked():
-                self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
-                self.run.setChecked(False)
         else:
             print('serial_port_refresh: insert', self.port)
             # print(portNameList)
             self.comboBoxPort.setCurrentIndex(portNameList.index(self.port))
-            if self.actionAutoConnect.isChecked() and self.serial_open():
-                self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
-                self.run.setChecked(True)
+            if self.actionAutoConnect.isChecked():
+                self.serial_open()
         self.comboBoxPort.blockSignals(False)
 
     def serial_port_set(self, port):
@@ -577,10 +608,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.pushButtonSend.show()
             self.dataLayout.insertWidget(2, self.comboBoxSend)
             self.comboBoxSend.show()
-            max = self.textBrowser.verticalScrollBar().maximum()
-            if self.autoScroll:
-                #self.textBrowser.moveCursor(QTextCursor.End)
-                self.textBrowser.verticalScrollBar().setSliderPosition(max)
+            self.serial_recvAutoScroll()
         else:
             self.plainTextEdit.setParent(None)
             self.pushButtonSend.setParent(None)
@@ -592,10 +620,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         Slot documentation goes here.
         """
-        max = self.textBrowser.verticalScrollBar().maximum()
-        if self.autoScroll:
-            #self.textBrowser.moveCursor(QTextCursor.End)
-            self.textBrowser.verticalScrollBar().setSliderPosition(max)
+        self.serial_recvAutoScroll()
 
     @pyqtSlot(bool)
     def on_checkBoxResend_toggled(self, checked):
@@ -629,31 +654,30 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.serial_send()
 
     @pyqtSlot(bool)
-    def on_run_triggered(self, checked):
+    def on_run_triggered(self):
         """
         Slot documentation goes here.
 
         @param checked DESCRIPTION
         @type bool
         """
-        if checked:
-            if self.port == None:
-                self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
-                self.run.setChecked(False)
-            else:
-                if self.serial.isOpen() and self.serial.port == self.port:
-                    #self.serial_recvThreadStart()
-                    self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
-                else:
-                    if not self.serial_open():
-                        self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
-                        self.run.setChecked(False)
-                    else:
-                        self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
-                        print('Run: pause!')
+        if self.runStates == SERIAL_STOP:
+            portNameList = []
+            port_list=list(serial.tools.list_ports.comports())
+            port_list.sort()
+            for port_list_0 in port_list:
+                port = list(port_list_0)
+                portNameList.append(port[0])
+            if self.port and self.port in portNameList:
+                self.serial_open()
+        elif self.runStates == SERIAL_RUN:
+            self.runStates = SERIAL_PAUSE
+            self.run.setIcon(QIcon(':/icon/resource/icon/trist_bk48.png'))
+        elif self.runStates == SERIAL_PAUSE:
+            self.runStates = SERIAL_RUN
+            self.run.setIcon(QIcon(':/icon/resource/icon/pause_bk48.png'))
         else:
-            self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
-            print('Run checked', checked)
+            print('on_run_triggered: run state error!')
 
     @pyqtSlot()
     def on_stop_triggered(self):
@@ -661,8 +685,6 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         Slot documentation goes here.
         """
         self.actionAutoConnect.setChecked(False)
-        self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
-        self.run.setChecked(False)
         self.serial_close()
 
     @pyqtSlot()
@@ -689,11 +711,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         @param index DESCRIPTION
         @type int
         """
-        #print('current Index Changed:%d'% index)
         if index == -1:
             return
-        # if not self.actionAutoConnect.isChecked():
-        #     self.port = list(list(serial.tools.list_ports.comports()))[index][0]
         port_list=list(serial.tools.list_ports.comports())
         port_list.sort()
         self.port = list(port_list)[index][0]
@@ -701,8 +720,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if self.actionAutoConnect.isChecked():
             self.AutoConnectPort = self.port
             self.settings.setValue('Auto', self.port)
-        if self.run.isChecked():
-            self.serial_close()
+        if self.runStates != SERIAL_STOP:
             self.serial_open()
 
     @pyqtSlot(int)
@@ -719,8 +737,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.comboBoxBaud.setEditable(False)
         if self.comboBoxBaud.currentText().isdigit():
             self.baudrate=int(self.comboBoxBaud.currentText())
-            if self.run.isChecked():
-                self.serial_close()
+            if self.runStates != SERIAL_STOP:
                 self.serial_open()
 
     @pyqtSlot(str)
@@ -734,8 +751,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if self.comboBoxBaud.currentText().isdigit() and self.comboBoxBaud.currentIndex()>=5:
             self.baudrate=int(self.comboBoxBaud.currentText())
             print("Baud change %d" % self.baudrate)
-            if self.run.isChecked():
-                self.serial_close()
+            if self.runStates != SERIAL_STOP:
                 self.serial_open()
 
     @pyqtSlot(int)
@@ -747,8 +763,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         @type int
         """
         self.bytesize=int(self.comboBoxDataBit.currentText())
-        if self.run.isChecked():
-            self.serial_close()
+        if self.runStates != SERIAL_STOP:
             self.serial_open()
 
     @pyqtSlot(int)
@@ -768,8 +783,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         elif index == 2:
             self.xonxoff=True
             self.rtscts=False
-        if self.run.isChecked():
-            self.serial_close()
+        if self.runStates != SERIAL_STOP:
             self.serial_open()
 
     @pyqtSlot(int)
@@ -781,8 +795,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         @type int
         """
         self.stopbits=float(self.comboBoxStopBit.currentText())
-        if self.run.isChecked():
-            self.serial_close()
+        if self.runStates != SERIAL_STOP:
             self.serial_open()
 
     @pyqtSlot(int)
@@ -795,8 +808,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         parity=["N", "E", "O", "M", "S"]
         self.parity=parity[index]
-        if self.run.isChecked():
-            self.serial_close()
+        if self.runStates != SERIAL_STOP:
             self.serial_open()
 
     @pyqtSlot(str)
@@ -858,19 +870,13 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.port = port
                 self.AutoConnectPort = self.port
                 self.settings.setValue('Auto', self.port)
-                if self.serial_port_set(self.port) and self.serial_open():
-                    self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
-                    self.run.setChecked(True)
-                else:
-                    self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
-                    self.run.setChecked(False)
-                return
+                if self.serial_port_set(self.port):
+                    self.serial_open()
             else:
                 self.actionAutoConnect.setChecked(False)
-                print('Auto connect port failed:', result)
 
     @pyqtSlot(bool)
-    def on_codec_triggered(self, checked):
+    def on_codec_triggered(self):
         """
         Slot documentation goes here.
 
@@ -892,16 +898,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         Slot documentation goes here.
         """
-        self.option = Option()
+        self.option = Option(self)
         self.option.show()
-
-#    def nativeEventFilter(self, eventType, message):
-#        print('hello')
-#        print('eventType:', eventType)
-#        print(message)
-#        #print('message:', message)
-#        #print('result:', result)
-#        return False, 0
 
     @pyqtSlot(bool)
     def on_sideView_toggled(self, p0):
@@ -958,17 +956,6 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             else:
                 self.horizontalLayout.removeItem(self.sideLayout)
                 self.view_send_visible(False)
-
-    @pyqtSlot()
-    def on_actionFont_triggered(self):
-        """
-        Slot documentation goes here.
-        """
-        font,ok=QFontDialog.getFont(self.textBrowser.font())
-        if ok:
-            self.textBrowser.setFont(font)
-            font = '{},{},{}'.format(font.family(), font.pointSize(), font.weight())
-            self.settings.setValue('Font', font)
 
     @pyqtSlot(bool)
     def on_checkBoxNewLine_toggled(self, checked):
