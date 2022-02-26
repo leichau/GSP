@@ -6,7 +6,7 @@ Module implementing SerialPort.
 import serial, serial.tools.list_ports, threading, re
 import sys, time
 from datetime import datetime
-from PyQt5.QtCore import pyqtSlot, QAbstractNativeEventFilter, QSettings, pyqtSignal, QSize
+from PyQt5.QtCore import pyqtSlot, QAbstractNativeEventFilter, QSettings, pyqtSignal, QSize, QEvent, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QFontDialog, QMenu, QToolButton
 from PyQt5.QtGui import QTextCursor, QFont, QIcon
 from io import StringIO
@@ -154,18 +154,22 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.checkBoxEcho.setChecked(True)
         else:
             self.checkBoxEcho.setChecked(False)
-         #添加回车
+        #添加回车
         SendReturnEnable = self.settings.value('Return')
         if SendReturnEnable and SendReturnEnable == '1':
             self.sendReturn.setChecked(True)
         else:
             self.sendReturn.setChecked(False)
-         #转义序列
+        #转义序列
         EscapeEnable = self.settings.value('Escape')
         if EscapeEnable and EscapeEnable == '1':
             self.sendEscape.setChecked(True)
         else:
             self.sendEscape.setChecked(False)
+        #发送列表
+        SendList = self.settings.value('SendList')
+        if SendList:
+            self.comboBoxSend.addItems(SendList)
         #收发统计
         self.rxCount = 0
         self.txCount = 0
@@ -182,22 +186,11 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.statusBar.addWidget(self.InfoTx, 1)
         self.memStream = StringIO()
         self.streamCursor = 0
-        # self.stream_displayThreadState = False
-        # self.displayThread = threading.Thread(target=self.stream_displayThread, name='displayThread')
-        # #join和setDaemon作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
-        # #如果都不设置，主线程和子线程各自运行，互不影响
-        # #setDaemon必须在start() 方法调用之前设置，否则程序会被无限挂起。参数True表示主调线程为为守护线程，
-        # self.displayThread.setDaemon(True)
-        # self.displayThread.start()
-        # #join在start()之后调用，参数为超时时间
-        # #self.displayThread.join()
         self.sigDispaly.connect(self.stream_displayRender)
         self.sigRxCnt.connect(self.rxCntUpdate)
         self.sigLcdNum.connect(self.lcdNumUpdate)
         self.resendThreadState = False
         self.resendThread = threading.Thread(target=self.serial_resendThread, name='resendThread')
-        #cgitb.enable(0, None, 5, '')
-        #cgitb.enable(format='text')
         viewMenu = QMenu("view")
         viewMenu.addAction(self.sideView)
         viewMenu.addAction(self.sendView)
@@ -209,12 +202,28 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.toolBar.insertWidget(self.option, self.viewLayout)
         self.viewLayout.clicked.connect(self.on_viewLayout_clicked)
 
+    #窗口改变事件
+    def changeEvent(self, event):
+        if event.type() != QEvent.WindowStateChange:
+            return
+        if self.windowState() == Qt.WindowNoState:
+            if self.autoScroll:
+                #self.textBrowser.moveCursor(QTextCursor.End)
+                max = self.textBrowser.verticalScrollBar().maximum()
+                self.textBrowser.verticalScrollBar().setSliderPosition(max)
+        print('changeEvent: %d %08X'%(event.type(), self.windowState()))
+
     def closeEvent(self, event):
         if event.type() == 19:
             print('Close type: close event')
         else:
             print('Close type:', event.type())
         self.serial_close()
+        sendList = []
+        count = self.comboBoxSend.count()
+        for i in range(0, count):
+            sendList.append(self.comboBoxSend.itemText(i))
+        self.settings.setValue('SendList', sendList)
         # self.stream_displayThreadState = False
         # while self.displayThread.is_alive():
         #     pass
@@ -237,64 +246,6 @@ class SerialPort(QMainWindow, Ui_MainWindow):
     def stream_write(self, data):
         self.memStream.seek(0, 2)
         self.memStream.write(data)
-
-    # def stream_displayThread(self):
-    #     self.stream_displayThreadState = True
-    #     while self.stream_displayThreadState and not self.memStream.closed:
-    #         self.memStream.seek(0, 2)
-    #         offset = self.memStream.tell()
-    #         if self.streamCursor < offset:
-    #             streamRead = self.streamCursor
-    #             self.memStream.seek(streamRead, 0)
-    #             dataHead = self.memStream.readline()
-    #             jsonHead = json.loads(dataHead)
-    #             print(jsonHead)
-    #             dataLength = jsonHead['Length']
-    #             data = self.memStream.read(dataLength)
-    #             streamRead = self.memStream.tell()
-    #             textCursor = self.textBrowser.textCursor()
-    #             textCursor.movePosition(QTextCursor.End)
-    #             homeAdd = 0
-    #             received = jsonHead['Received']
-    #             timeEnable = jsonHead['TimeEnable']
-    #             if timeEnable:
-    #                 timestamp = jsonHead['Timestamp']
-    #                 timestamp = '<font color=#800040>' + timestamp + '</font>'
-    #                 data = re.sub('(\r\n|\n)$', '<br />', data)
-    #                 data = re.sub('(\r\n|\n)', '<br />'+timestamp, data)
-    #                 if not re.match('<br />', data):
-    #                     data = timestamp + data
-    #                     if not self.stream_isHome():
-    #                         homeAdd = 1
-    #             else:
-    #                 data = re.sub('(\r\n|\n)', '<br />', data)
-    #             if received:    #接收显示
-    #                 monitorEnable = jsonHead['MonitorEnable']
-    #                 monitor = jsonHead['Monitor']
-    #                 if monitorEnable and len(monitor):
-    #                     monitorFont = '<span style="background-color: #ffff00">' + monitor + '</span>'
-    #                     data = data.replace(monitor, monitorFont)
-    #                 data = '<font color=#000000>' + data + '</font>'
-    #                 lineEnable = jsonHead['LineEnable']
-    #                 if lineEnable:
-    #                     if not self.stream_isHome():
-    #                         homeAdd = 1
-    #             else:   #发送显示
-    #                 data = '<font color=#008000>' + data + '</font>'
-    #                 if not self.stream_isHome():
-    #                     homeAdd = 1
-    #             if homeAdd:
-    #                 data = '<br />' + data
-    #             textCursor.insertHtml(data)
-    #             self.streamCursor = streamRead
-    #             continue
-    #         time.sleep(0.05)
-    #         #自动下拉滚动条
-    #         if self.textBrowser.verticalScrollBar().value()==self.textBrowser.verticalScrollBar().maximum():
-    #             self.autoScroll = True
-    #         else:
-    #             self.autoScroll = False
-    #         #print('%s[%d]'%(sys._getframe().f_code.co_name, sys._getframe().f_lineno))
 
     def stream_displayRender(self):
         if not self.run.isChecked():
@@ -463,14 +414,30 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.serial_send()
                 time.sleep(self.spinBoxTime.value()/1000)
 
+    def serial_send_history_add(self, item):
+        self.comboBoxSend.blockSignals(True)
+        currentText = self.comboBoxSend.currentText()
+        count = self.comboBoxSend.count()
+        for i in range(0, count):
+            if self.comboBoxSend.itemText(i) == item:
+                self.comboBoxSend.removeItem(i)
+                print('serial_send_history_add: delete', item)
+                break
+        self.comboBoxSend.insertItem(0, item)
+        print('serial_send_history_add:', item)
+        count = self.comboBoxSend.count()
+        if count > 10:
+            self.comboBoxSend.removeItem(count-1)
+        index = self.comboBoxSend.findText(currentText)
+        if index == -1:
+            index = 0
+        self.comboBoxSend.setCurrentIndex(index)
+        self.comboBoxSend.blockSignals(False)
+
     def serial_send(self):
         if self.serial.isOpen():
             inputString = self.plainTextEdit.toPlainText()
-            # self.comboBoxSend.insertItem(0, inputString)
-            # count = self.comboBoxSend.count()
-            # if count > 10:
-            #     self.comboBoxSend.removeItem(count-1)
-            # print('current index', self.comboBoxSend.currentIndex())
+            self.serial_send_history_add(inputString)
             data=''
             if self.radioButtonSendASCII.isChecked():
                 if len(inputString):
@@ -526,20 +493,26 @@ class SerialPort(QMainWindow, Ui_MainWindow):
     def serial_open(self):
         if self.serial.isOpen():
             if self.serial.port == self.port:
-                print('serial_open opend')
+                print('serial_open: opend')
                 return True
             else:
                 self.serial_close()
         try:
-            print('serial_open', self.port)
+            print('serial_open:', self.port)
             self.serial = serial.Serial(port=self.port, baudrate=self.baudrate, bytesize=self.bytesize, parity=self.parity, stopbits=self.stopbits, timeout=2,
                                              xonxoff=self.xonxoff, rtscts=self.rtscts)
         except serial.SerialException as e:
-            #FileNotFoundError表示不存在指定串口
-            if str(e).find('FileNotFoundError') == -1:
-                print('%s[%d]:%s'%(sys._getframe().f_code.co_name, sys._getframe().f_lineno, str(e)))
-                QMessageBox.question(self, '{}'.format(self.port), '无法打开{}\n请确认是否占用'.format(self.port),
-                                                   QMessageBox.Ok, QMessageBox.Ok)
+            print('%s[%d]:%s'%(sys._getframe().f_code.co_name, sys._getframe().f_lineno, str(e)))
+            if str(e).find('PermissionError') != -1:
+                print('serial_open: PermissionError')
+            elif str(e).find('FileNotFoundError') != -1:
+                print('serial_open: FileNotFoundError')
+            elif str(e).find('OSError(22,') != -1:
+                print('serial_open: 请求的资源在使用中')
+                QMessageBox.question(self, '{}'.format(self.port), '无法打开 {}\n请确认是否占用'.format(self.port),
+                                     QMessageBox.Ok, QMessageBox.Ok)
+            else:
+                print('serial_open: Undefined exception!')
             return False
         self.InfoPort.setStyleSheet("color: green;font: 9pt 'Arial'")
         self.InfoPort.setText('{} OPENED {} {} {}'.format(self.port, self.baudrate, self.bytesize, self.parity))
@@ -552,10 +525,13 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.serial.close()
             self.InfoPort.setStyleSheet("color: red;font: 9pt 'Arial'")
             self.InfoPort.setText('{} CLOSED'.format(self.port))
+            print('serial_close:', self.port)
+        else:
+            print('serial_close: closed')
 
     #端口刷新
-    def port_update(self):
-        selfport = self.port
+    def serial_port_refresh(self):
+        self.comboBoxPort.blockSignals(True)
         self.comboBoxPort.clear()
         portNameList = []
         port_list=list(serial.tools.list_ports.comports())
@@ -564,19 +540,20 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             port = list(port_list_0)
             self.comboBoxPort.addItem(port[1])
             portNameList.append(port[0])
-        self.port = selfport
         if self.port not in portNameList:#端口移除
+            print('serial_port_refresh: remove', self.port)
             self.serial_close()
             if self.run.isChecked():
                 self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
                 self.run.setChecked(False)
         else:
-            print('port_update', self.port)
+            print('serial_port_refresh: insert', self.port)
             # print(portNameList)
             self.comboBoxPort.setCurrentIndex(portNameList.index(self.port))
             if self.actionAutoConnect.isChecked() and self.serial_open():
                 self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
                 self.run.setChecked(True)
+        self.comboBoxPort.blockSignals(False)
 
     def serial_port_set(self, port):
         portComList = []
@@ -591,20 +568,6 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             return False
 
-    def serial_port_get(self):
-        portComList = []
-        port_list=list(serial.tools.list_ports.comports())
-        port_list.sort()
-        for port_list_0 in port_list:
-            com = list(port_list_0)
-            portComList.append(com[0])
-        index = self.comboBoxPort.currentIndex()
-        if index>=0 and index<len(portComList):
-            port = portComList[index]
-        else:
-            port = None
-        return port
-
     def view_send_visible(self, visible):
         if visible:
             self.dataLayout.insertLayout(1, self.sendBox)
@@ -614,6 +577,10 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.pushButtonSend.show()
             self.dataLayout.insertWidget(2, self.comboBoxSend)
             self.comboBoxSend.show()
+            max = self.textBrowser.verticalScrollBar().maximum()
+            if self.autoScroll:
+                #self.textBrowser.moveCursor(QTextCursor.End)
+                self.textBrowser.verticalScrollBar().setSliderPosition(max)
         else:
             self.plainTextEdit.setParent(None)
             self.pushButtonSend.setParent(None)
@@ -724,7 +691,6 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         #print('current Index Changed:%d'% index)
         if index == -1:
-            self.serial_close()
             return
         # if not self.actionAutoConnect.isChecked():
         #     self.port = list(list(serial.tools.list_ports.comports()))[index][0]
@@ -767,7 +733,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         if self.comboBoxBaud.currentText().isdigit() and self.comboBoxBaud.currentIndex()>=5:
             self.baudrate=int(self.comboBoxBaud.currentText())
-            print("change %d" % self.baudrate)
+            print("Baud change %d" % self.baudrate)
             if self.run.isChecked():
                 self.serial_close()
                 self.serial_open()
@@ -833,18 +799,17 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.serial_close()
             self.serial_open()
 
-    @pyqtSlot(int)
-    def on_comboBoxSend_currentIndexChanged(self, index):
+    @pyqtSlot(str)
+    def on_comboBoxSend_textActivated(self, text):
         """
         Slot documentation goes here.
 
         @param index DESCRIPTION
         @type int
         """
-        #TODO 添加最近十条发送数据，最好可以永久保存，考虑数据库支持
-        if len(self.comboBoxSend.text()):
-            # self.plainTextEdit.setPlainText(self.comboBoxSend.text())
-            print('comboBoxSend', self.comboBoxSend.currentIndex())
+        print('on_comboBoxSend_textActivated:', text)
+        if len(text):
+            self.plainTextEdit.setPlainText(text)
 
     @pyqtSlot()
     def on_radioButtonRecvASCII_pressed(self):
@@ -893,7 +858,6 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.port = port
                 self.AutoConnectPort = self.port
                 self.settings.setValue('Auto', self.port)
-                # self.port_update()
                 if self.serial_port_set(self.port) and self.serial_open():
                     self.run.setIcon(QIcon(':/icon/resource/icon/pause48.png'))
                     self.run.setChecked(True)
@@ -904,9 +868,6 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             else:
                 self.actionAutoConnect.setChecked(False)
                 print('Auto connect port failed:', result)
-        else:
-            self.port = self.serial_port_get()
-            print('serial_port_get', self.port)
 
     @pyqtSlot(bool)
     def on_codec_triggered(self, checked):
@@ -1121,11 +1082,11 @@ class SysEventFilter(QAbstractNativeEventFilter):
                 msg = ctypes.wintypes.MSG.from_address(message.__int__())
                 if msg.message == 0x0219: # WM_DEVICECHANGE 消息
                     if msg.wParam == 0x8000: # DBT_DEVICEARRIVAL 已插入设备或介质
-                        #print("A device or piece of media has been inserted and is now available.")
-                        self.dlg.port_update()
+                        print("A device or piece of media has been inserted and is now available.")
+                        self.dlg.serial_port_refresh()
                     elif msg.wParam == 0x8004: # DBT_DEVICEREMOVECOMPLETE 已删除设备或介质
-                        #print("A device or piece of media has been removed.")
-                        self.dlg.port_update()
+                        print("A device or piece of media has been removed.")
+                        self.dlg.serial_port_refresh()
                     elif msg.wParam == 0x0007: # DBT_DEVNODES 已在系统中添加或删除设备
                         pass
                     else:

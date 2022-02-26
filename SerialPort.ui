@@ -501,7 +501,7 @@
              <property name="font">
               <font>
                <family>Arial</family>
-               <pointsize>11</pointsize>
+               <pointsize>10</pointsize>
               </font>
              </property>
             </widget>
@@ -622,7 +622,14 @@
        </layout>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBoxSend"/>
+       <widget class="QComboBox" name="comboBoxSend">
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
