@@ -91,14 +91,14 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.checkBoxNewLine.setChecked(False)
         #接收格式 1:ASCII  0:HEX
-        RecvFormate = self.settings.value('RecvFormate')
-        if RecvFormate and RecvFormate == "0":
+        RecvFormat = self.settings.value('RecvFormat')
+        if RecvFormat and RecvFormat == "0":
             self.radioButtonRecvHex.setChecked(True)
         else:
             self.radioButtonRecvASCII.setChecked(True)
         #发送格式 1:ASCII  0:HEX
-        SendFormate = self.settings.value('SendFormate')
-        if SendFormate and SendFormate == "0":
+        SendFormat = self.settings.value('SendFormat')
+        if SendFormat and SendFormat == "0":
             self.radioButtonSendHex.setChecked(True)
         else:
             self.radioButtonSendASCII.setChecked(True)
@@ -349,10 +349,10 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 data = self.serial.read_all()
             except Exception as e:
                 self.recvThreadState = False
-                print('Received thread error: ', str(e))
+                print('serial_recvThread error:', str(e))
                 break
             if data and not self.memStream.closed:
-                if self.rxCount > 1000000:
+                if self.rxCount > 500*10000:
                     #self.textBrowser.clear()
                     self.on_clear_triggered()
                     # self.rxCount = 0
@@ -409,7 +409,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.stream_write(data)
                 self.sigDispaly.emit()
                 continue
-            time.sleep(0.02)
+            time.sleep(0.05)
 
     def serial_recvThreadStart(self):
         self.recvThreadState = True
@@ -445,7 +445,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.comboBoxSend.insertItem(0, item)
         print('serial_send_history_add:', item)
         count = self.comboBoxSend.count()
-        if count > 10:
+        if count > 15:
             self.comboBoxSend.removeItem(count-1)
         index = self.comboBoxSend.findText(currentText)
         if index == -1:
@@ -456,10 +456,13 @@ class SerialPort(QMainWindow, Ui_MainWindow):
     def serial_send(self):
         if self.serial.isOpen():
             inputString = self.plainTextEdit.toPlainText()
+            if len(inputString) == 0:
+                return
             self.serial_send_history_add(inputString)
             data=''
             if self.radioButtonSendASCII.isChecked():
                 if len(inputString):
+                    # 转义替换
                     if self.sendEscape.isChecked():
                         inputString = inputString.replace('\\r', '\r')
                         inputString = inputString.replace('\\n', '\n')
@@ -486,7 +489,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             #发送回显
             if self.checkBoxEcho.isChecked():
                 if self.radioButtonRecvASCII.isChecked():
-                    data = hexData.decode('gbk')
+                    data = hexData.decode('gbk', errors='ignore')
                 else:
                     data = ''
                     for x in hexData:
@@ -719,7 +722,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         print('comboBoxPort', self.port)
         if self.actionAutoConnect.isChecked():
             self.AutoConnectPort = self.port
-            self.settings.setValue('Auto', self.port)
+            self.settings.setValue('Auto', self.AutoConnectPort)
         if self.runStates != SERIAL_STOP:
             self.serial_open()
 
@@ -828,28 +831,28 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         Slot documentation goes here.
         """
-        self.settings.setValue('RecvFormate', 1)
+        self.settings.setValue('RecvFormat', 1)
 
     @pyqtSlot()
     def on_radioButtonRecvHex_pressed(self):
         """
         Slot documentation goes here.
         """
-        self.settings.setValue('RecvFormate', 0)
+        self.settings.setValue('RecvFormat', 0)
 
     @pyqtSlot()
     def on_radioButtonSendASCII_pressed(self):
         """
         Slot documentation goes here.
         """
-        self.settings.setValue('SendFormate', 1)
+        self.settings.setValue('SendFormat', 1)
 
     @pyqtSlot()
     def on_radioButtonSendHex_pressed(self):
         """
         Slot documentation goes here.
         """
-        self.settings.setValue('SendFormate', 0)
+        self.settings.setValue('SendFormat', 0)
 
     @pyqtSlot(bool)
     def on_actionAutoConnect_toggled(self, p0):

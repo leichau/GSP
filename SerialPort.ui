@@ -374,7 +374,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>添加回车</string>
+              <string>添加换行</string>
              </property>
             </widget>
            </item>
@@ -623,6 +623,12 @@
       </item>
       <item>
        <widget class="QComboBox" name="comboBoxSend">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="font">
          <font>
           <family>Arial</family>
@@ -742,7 +748,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>发送项</string>
+    <string>发送栏</string>
    </property>
   </action>
   <action name="option">

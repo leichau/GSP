@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QWidget, QTextEdit, QFontDialog
 from PyQt5.QtGui import QIcon
 
 from Ui_option import Ui_Option
-
+from datetime import datetime
 
 class Option(QWidget, Ui_Option):
     """
@@ -30,6 +30,7 @@ class Option(QWidget, Ui_Option):
         self.softInfo.setLineWrapMode(QTextEdit.NoWrap)
         self.softInfo.append('Copyright (c) 2017-2022 llc. All Rights Reserved.')
         self.softInfo.append('\n当前版本：0.1.5')
+        self.softInfo.append('创建时间: {}'.format(datetime.now().strftime('%H:%M:%S')))
         self.softInfo.append('版本状态：试用版')
         self.softInfo.append('更新内容：')
         self.softInfo.append('编码器：添加异或校验')
@@ -48,6 +49,9 @@ class Option(QWidget, Ui_Option):
         self.softInfo.append('\n0.1.1\t2017')
         self.softInfo.append('串口：完成串口基本收发功能')
         self.master = master
+        font = self.master.textBrowser.font()
+        self.fontLine.setText("%s, %d, %d"%(font.family(), font.pointSize(), font.weight()))
+
 
     @pyqtSlot()
     def on_fontButton_clicked(self):
