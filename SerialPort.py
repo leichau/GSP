@@ -37,7 +37,9 @@ from option import Option
        使用 textCursor.movePosition(QTextCursor.End) 可以解决文本失选问题           已解决
 12、显示时间时会自动换行，导致换行前已在行头时，会多出一个空行    已解决
         此问题可结合问题 3 一起解决
-13、数据量达到限值清除时，异常退出
+13、数据量达到限值清除时，异常退出 - 初步分析清除调用 textBrowser.clear 导致
+14、添加收发标记
+15、按照 html/css 语法实现全局颜色控制
 '''
 
 SERIAL_STOP = 0
@@ -353,6 +355,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 break
             if data and not self.memStream.closed:
                 if self.rxCount > 500*10000:
+                    print(__file__, sys._getframe().f_lineno)
                     #self.textBrowser.clear()
                     self.on_clear_triggered()
                     # self.rxCount = 0
@@ -365,6 +368,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                     # self.monitorCnt = 0
                     # self.lcdNumber.display(self.monitorCnt)
                     # self.memStream = StringIO()
+                    print('Receive maxium clean!!!\r\n')
                 self.rxCount += len(data)
                 # self.InfoRx.setText('RX: {} Bytes'.format(self.rxCount))
                 self.sigRxCnt.emit(self.rxCount)

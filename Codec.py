@@ -3,6 +3,7 @@
 """
 Module implementing Codec.
 """
+import hashlib
 import sys, re
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWidgets import QMainWindow, QLabel
@@ -14,6 +15,7 @@ from Ui_Codec import Ui_Codec
 待解决问题
 1、中文字符串异或校验是双字节参与
 2、中文字符串和校验是双字节参与
+3、SHA256 添加前后缀支持
 '''
 
 class Codec(QMainWindow, Ui_Codec):
@@ -43,7 +45,7 @@ class Codec(QMainWindow, Ui_Codec):
         self.setWindowIcon(QIcon(':/icon/resource/icon/codec256.ico'))
         self.inputType.addItems(['字符串', 'gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32','十进制', '十六进制','big5'])
         self.inputType.setCurrentIndex(7)
-        self.outputType.addItems(['字符串','gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32', '十进制', '十六进制', 'big5', '异或校验', '和校验'])
+        self.outputType.addItems(['字符串','gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32', '十进制', '十六进制', 'big5', '异或校验', '和校验', 'SHA256'])
     
     #乱码处理
     def garbled(self):
@@ -269,6 +271,10 @@ class Codec(QMainWindow, Ui_Codec):
             charList.append('%02X'% checksum)
             self.OutputInfo.setText('输出: %d' % len(charList))
             outputData=div.join(pre+x for x in charList)
+        elif self.outputType.currentText()=='SHA256':
+            outputData = hashlib.sha256(inputData.encode('utf-8')).hexdigest()
+            outputData = outputData.upper()
+            self.OutputInfo.setText('输出: %d' % len(outputData))
         self.outputText.setText(outputData)
     
     @pyqtSlot()

@@ -1,8 +1,7 @@
 __pycache__
 build
 dist
-SerialPort.spec
+GSP.spec
 Codec.spec
 user.ini
 imgResource_rc.py
-GSP.spec
