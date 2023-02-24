@@ -40,6 +40,6 @@ VSVersionInfo(
         StringStruct(u'SquirrelAwareVersion', u'1'),
         StringStruct(u'', u'')])
       ]), 
-    VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
+    VarFileInfo([VarStruct(u'Translation', [2052, 1200])])
   ]
 )

@@ -241,6 +241,13 @@ class SerialPort(QMainWindow, Ui_MainWindow):
     def rxCntUpdate(self, cnt):
         self.InfoRx.setText('RX: {} Bytes'.format(cnt))
 
+    # html 特殊字符处理
+    def htmlCharProcess(self, data):
+        data = re.sub('(&)', '&amp;', data)
+        data = re.sub('(<)', '&lt;', data)
+        data = re.sub('(>)', '&gt;', data)
+        return data
+
     #行首检测
     def stream_isHome(self):
         if self.streamCursor > 0:
@@ -282,9 +289,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             textCursor.movePosition(QTextCursor.End)
             lineHomeAdd = 0
             # html 特殊字符处理
-            data = re.sub('(&)', '&amp;', data)
-            data = re.sub('(<)', '&lt;', data)
-            data = re.sub('(>)', '&gt;', data)
+            data = self.htmlCharProcess(data)
             received = jsonHead['Received']
             timeEnable = jsonHead['TimeEnable']
             if timeEnable:
@@ -308,7 +313,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             # print(temp)
             if received:    #接收显示
                 monitorEnable = jsonHead['MonitorEnable']
-                monitor = jsonHead['Monitor']
+                monitor = self.htmlCharProcess(jsonHead['Monitor'])
                 if monitorEnable and len(monitor):
                     monitorFont = '<span style="background-color: #ffff00">' + monitor + '</span>'
                     data = data.replace(monitor, monitorFont)
