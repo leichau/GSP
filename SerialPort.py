@@ -23,21 +23,20 @@ from option import Option
 待解决问题
 1、添加当前端口号列表
 2、选择自动连接后禁止端口选择
-3、自动换行检测行头换行                 完成
+3、自动换行检测行头换行                     完成
 4、添加序号标记                            终止
 5、添加时间标记                            完成
-6、添加字符串监控                         完成
-7、字体设置                                  完成
+6、添加字符串监控                          完成
+7、字体设置                                完成
 8、保存设置参数                            完成
-10、自动连接时漏接起始接收数据      未完成
+10、自动连接时漏接起始接收数据              未完成
        在IDE里不会漏接。
        在IDE外直接运行程序有漏接现象。去掉多余调试打印信息后漏接现象减少，推测在IDE外print打印会占用更多时间。
-11、textBrowser.append 添加文本会自动换行（注意：append 会在待添加字符串起始处换行，而不是在最后补充换行）
-       textBrowser.insertPlainText 会在选择位置处插入文本，使用 textBrowser.moveCursor 移到末尾，又会造成选中文本失选
-       使用 textCursor.movePosition(QTextCursor.End) 可以解决文本失选问题           已解决
-12、显示时间时会自动换行，导致换行前已在行头时，会多出一个空行    已解决
-        此问题可结合问题 3 一起解决
-13、数据量达到限值清除时，异常退出 - 初步分析清除调用 textBrowser.clear 导致
+11、textBrowser.append 添加文本会自动换行                      已解决
+12、显示时间时会自动换行，导致换行前已在行头时，会多出一个空行   已解决
+13、数据量达到限值清除时，异常退出                  已解决
+    - 初步分析清除调用 textBrowser.clear 导致
+    - 子线程调用 GUI 更新所致
 14、添加收发标记
 15、按照 html/css 语法实现全局颜色控制
 '''
@@ -360,20 +359,9 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 break
             if data and not self.memStream.closed:
                 if self.rxCount > 500*10000:
-                    print(__file__, sys._getframe().f_lineno)
-                    #self.textBrowser.clear()
-                    self.on_clear_triggered()
-                    # self.rxCount = 0
-                    # self.txCount = 0
-                    # self.streamCursor = 0
-                    # self.memStream.close()
-                    # self.textBrowser.clear()
-                    # self.InfoRx.setText('RX: {} Bytes'.format(self.rxCount))
-                    # self.InfoTx.setText('TX: {} Bytes'.format(self.txCount))
-                    # self.monitorCnt = 0
-                    # self.lcdNumber.display(self.monitorCnt)
-                    # self.memStream = StringIO()
-                    print('Receive maxium clean!!!\r\n')
+                    # print(__file__, sys._getframe().f_lineno)
+                    self.clear.trigger()
+                    time.sleep(0.05)
                 self.rxCount += len(data)
                 # self.InfoRx.setText('RX: {} Bytes'.format(self.rxCount))
                 self.sigRxCnt.emit(self.rxCount)
