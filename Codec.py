@@ -38,10 +38,17 @@ class Codec(QMainWindow, Ui_Codec):
         self.InputInfo.setStyleSheet("font: 12pt '微软雅黑'")
         self.statusBar.addWidget(self.InputInfo, 1)
         self.OutputInfo = QLabel()
-        self.OutputInfo.setAlignment(Qt.AlignLeft)
+        self.OutputInfo.setAlignment(Qt.AlignHCenter)
         self.OutputInfo.setText('输出')
         self.OutputInfo.setStyleSheet("font: 12pt '微软雅黑'")
         self.statusBar.addWidget(self.OutputInfo, 1)
+        self.SelectWord = 0
+        self.SelectByte = 0
+        self.SelectInfo = QLabel()
+        self.SelectInfo.setAlignment(Qt.AlignHCenter)
+        self.SelectInfo.setStyleSheet("font: 12pt '微软雅黑'")
+        self.SelectInfo.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
+        self.statusBar.addWidget(self.SelectInfo, 1)
         self.setWindowIcon(QIcon(':/icon/resource/icon/codec256.ico'))
         self.inputType.addItems(['字符串', 'gb2312\\gbk\\gb18030','unicode', 'utf-8', 'utf-16', 'utf-32','十进制', '十六进制','big5'])
         self.inputType.setCurrentIndex(7)
@@ -295,6 +302,46 @@ class Codec(QMainWindow, Ui_Codec):
         else:
             #乱码处理
             self.garbled()
+
+    @pyqtSlot()
+    def on_inputText_selectionChanged(self):
+        """
+        Slot documentation goes here.
+        """
+        text = self.inputText.textCursor().selectedText()
+        # 去除行分隔符 '\u2028'
+        text = text.replace('\u2028', '')
+        # textb = text.encode('utf8')
+        # print(textb.hex())
+        self.SelectByte = len(text)
+        # 去除首尾空格
+        text = text.strip(' ')
+        if len(text):
+            textList =  re.split(r" ", text)
+            self.SelectWord = len(textList)
+        else:
+            self.SelectWord = 0
+        self.SelectInfo.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
+
+    @pyqtSlot()
+    def on_outputText_selectionChanged(self):
+        """
+        Slot documentation goes here.
+        """
+        text = self.outputText.textCursor().selectedText()
+        # 去除行分隔符 '\u2028'
+        text = text.replace('\u2028', '')
+        # textb = text.encode('utf8')
+        # print(textb.hex())
+        self.SelectByte = len(text)
+        # 去除首尾空格
+        text = text.strip(' ')
+        if len(text):
+            textList =  re.split(r" ", text)
+            self.SelectWord = len(textList)
+        else:
+            self.SelectWord = 0
+        self.SelectInfo.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

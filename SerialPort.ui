@@ -545,8 +545,14 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
              <property name="text">
-              <string>清零</string>
+              <string>清 零</string>
              </property>
             </widget>
            </item>
@@ -604,6 +610,12 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>90</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>Consolas</family>
@@ -614,8 +626,22 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButtonSend">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <family>Arial</family>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
           <property name="text">
-           <string>发送</string>
+           <string>发 送</string>
           </property>
          </widget>
         </item>

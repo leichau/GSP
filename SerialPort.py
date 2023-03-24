@@ -39,6 +39,7 @@ from option import Option
     - 子线程调用 GUI 更新所致
 14、添加收发标记
 15、按照 html/css 语法实现全局颜色控制
+16、接收为查询接收，不利于时间测量
 '''
 
 SERIAL_STOP = 0
@@ -180,10 +181,12 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         #收发统计
         self.rxCount = 0
         self.txCount = 0
+        self.SelectByte = 0
+        self.SelectWord = 0
         #状态条信息
         self.InfoPort = QLabel()
-        self.InfoPort.setText('CLOSED')
         self.InfoPort.setStyleSheet("color: red;font: 9pt 'Arial'")
+        self.InfoPort.setText('CLOSED')
         self.statusBar.addWidget(self.InfoPort, 2)
         self.InfoRx = QLabel()
         self.InfoRx.setText('RX: {} Bytes'.format(self.rxCount))
@@ -191,6 +194,11 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.InfoTx = QLabel()
         self.InfoTx.setText('TX: {} Bytes'.format(self.txCount))
         self.statusBar.addWidget(self.InfoTx, 1)
+        self.InfoSelect = QLabel()
+        self.InfoSelect.setAlignment(Qt.AlignHCenter)
+        self.InfoSelect.setStyleSheet("font: 9pt 'Microsoft YaHei'")
+        self.InfoSelect.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
+        self.statusBar.addWidget(self.InfoSelect, 1)
         # 缓存流
         self.memStream = StringIO()
         self.streamCursor = 0
@@ -290,6 +298,14 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             # html 特殊字符处理
             data = self.htmlCharProcess(data)
             received = jsonHead['Received']
+            # 接收监测
+            if received:
+                monitorEnable = jsonHead['MonitorEnable']
+                monitor = self.htmlCharProcess(jsonHead['Monitor'])
+                if monitorEnable and len(monitor):
+                    monitorFont = '<span style="background-color: #ffff00">' + monitor + '</span>'
+                    data = data.replace(monitor, monitorFont)
+            # 时间戳
             timeEnable = jsonHead['TimeEnable']
             if timeEnable:
                 timestamp = jsonHead['Timestamp']
@@ -304,25 +320,21 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                         data = timestamp + '<br />'
                 data = re.sub('(\r\n|\n)$', '<br />', data)
                 data = re.sub('(\r\n|\n)', '<br />'+timestamp, data)
+                # 时间戳使能则自动换行
                 if not self.stream_isHome():
                     lineHomeAdd = 1
             else:
                 data = re.sub('(\r\n|\n)', '<br />', data)
-            # temp = data.encode("gbk")
-            # print(temp)
             if received:    #接收显示
-                monitorEnable = jsonHead['MonitorEnable']
-                monitor = self.htmlCharProcess(jsonHead['Monitor'])
-                if monitorEnable and len(monitor):
-                    monitorFont = '<span style="background-color: #ffff00">' + monitor + '</span>'
-                    data = data.replace(monitor, monitorFont)
                 data = '<font color=#000000>' + data + '</font>'
+                # 自动换行
                 lineEnable = jsonHead['LineEnable']
                 if lineEnable:
                     if not self.stream_isHome():
                         lineHomeAdd = 1
             else:   #发送显示
                 data = '<font color=#008000>' + data + '</font>'
+                # 发送显示自动换行
                 if not self.stream_isHome():
                     lineHomeAdd = 1
             if lineHomeAdd:
@@ -622,6 +634,26 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         self.serial_recvAutoScroll()
 
+    @pyqtSlot()
+    def on_textBrowser_selectionChanged(self):
+        """
+        Slot documentation goes here.
+        """
+        text = self.textBrowser.textCursor().selectedText()
+        # 去除行分隔符 '\u2028'
+        text = text.replace('\u2028', '')
+        # textb = text.encode('utf8')
+        # print(textb.hex())
+        self.SelectByte = len(text)
+        # 去除首尾空格
+        text = text.strip(' ')
+        if len(text):
+            textList =  re.split(r" ", text)
+            self.SelectWord = len(textList)
+        else:
+            self.SelectWord = 0
+        self.InfoSelect.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
+
     @pyqtSlot(bool)
     def on_checkBoxResend_toggled(self, checked):
         """
@@ -884,6 +916,10 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         @type bool
         """
         codec.show()
+        if codec.isMinimized():
+            codec.showNormal()
+        # 窗口前置
+        codec.activateWindow()
 
     @pyqtSlot()
     def on_about_triggered(self):
