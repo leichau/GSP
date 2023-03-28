@@ -11,6 +11,8 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIcon
 
 from Ui_Codec import Ui_Codec
+from common import Common
+
 '''
 待解决问题
 1、中文字符串异或校验是双字节参与
@@ -314,13 +316,7 @@ class Codec(QMainWindow, Ui_Codec):
         # textb = text.encode('utf8')
         # print(textb.hex())
         self.SelectByte = len(text)
-        # 去除首尾空格
-        text = text.strip(' ')
-        if len(text):
-            textList =  re.split(r" ", text)
-            self.SelectWord = len(textList)
-        else:
-            self.SelectWord = 0
+        self.SelectWord = Common.word_count(text)
         self.SelectInfo.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
     @pyqtSlot()
@@ -334,13 +330,7 @@ class Codec(QMainWindow, Ui_Codec):
         # textb = text.encode('utf8')
         # print(textb.hex())
         self.SelectByte = len(text)
-        # 去除首尾空格
-        text = text.strip(' ')
-        if len(text):
-            textList =  re.split(r" ", text)
-            self.SelectWord = len(textList)
-        else:
-            self.SelectWord = 0
+        self.SelectWord = Common.word_count(text)
         self.SelectInfo.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
 if __name__ == '__main__':

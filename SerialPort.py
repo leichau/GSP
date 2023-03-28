@@ -4,7 +4,7 @@
 Module implementing SerialPort.
 """
 import serial, serial.tools.list_ports, threading, re
-import sys, time
+import sys, time, traceback
 from datetime import datetime
 from PyQt5.QtCore import pyqtSlot, QAbstractNativeEventFilter, QSettings, pyqtSignal, QSize, QEvent, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QFontDialog, QMenu, QToolButton
@@ -18,6 +18,7 @@ from Codec import Codec
 from About import About
 from AutoConnect import AutoConnect
 from option import Option
+from common import Common
 
 '''
 待解决问题
@@ -218,6 +219,22 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.viewLayout.setIcon(QIcon(':/icon/resource/icon/view48.png'))
         self.toolBar.insertWidget(self.option, self.viewLayout)
         self.viewLayout.clicked.connect(self.on_viewLayout_clicked)
+        # 异常捕获
+        sys.excepthook = self.unknown_exceptions
+
+    # 未知异常捕获
+    def unknown_exceptions(self, ExceptType, ExceptValue, Traceback):
+        print(ExceptType)
+        print(ExceptValue)
+        print(Traceback)
+        traceback_format = Traceback.format_exception(ExceptType, ExceptValue, Traceback)
+        traceback_string = "".join(traceback_format)
+        QMessageBox.question(self, '程序错误', '{}'.format(traceback_string),
+                                     QMessageBox.Ok, QMessageBox.Ok)
+        fError = open("except_error.log",  'a')
+        print(datetime.now(), file = fError)
+        print('{}'.format(traceback_string), file=fError)
+        fError.close()
 
     #窗口改变事件
     def changeEvent(self, event):
@@ -645,13 +662,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         # textb = text.encode('utf8')
         # print(textb.hex())
         self.SelectByte = len(text)
-        # 去除首尾空格
-        text = text.strip(' ')
-        if len(text):
-            textList =  re.split(r" ", text)
-            self.SelectWord = len(textList)
-        else:
-            self.SelectWord = 0
+        self.SelectWord = Common.word_count(text)
         self.InfoSelect.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
     @pyqtSlot(bool)
