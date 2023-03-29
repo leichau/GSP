@@ -224,17 +224,17 @@ class SerialPort(QMainWindow, Ui_MainWindow):
 
     # 未知异常捕获
     def unknown_exceptions(self, ExceptType, ExceptValue, Traceback):
-        print(ExceptType)
-        print(ExceptValue)
-        print(Traceback)
-        traceback_format = Traceback.format_exception(ExceptType, ExceptValue, Traceback)
+        traceback_format = traceback.format_exception(ExceptType, ExceptValue, Traceback)
         traceback_string = "".join(traceback_format)
-        QMessageBox.question(self, '程序错误', '{}'.format(traceback_string),
-                                     QMessageBox.Ok, QMessageBox.Ok)
-        fError = open("except_error.log",  'a')
+
+        fError = open("error.log",  'a')
         print(datetime.now(), file = fError)
         print('{}'.format(traceback_string), file=fError)
         fError.close()
+
+        QMessageBox.warning(self, ExceptType.__name__, '{}'.format(traceback_string),
+                                     QMessageBox.Ok, QMessageBox.Ok)
+        
 
     #窗口改变事件
     def changeEvent(self, event):
@@ -486,6 +486,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 return
             self.serial_send_history_add(inputString)
             data=''
+            hexData=''
             if self.radioButtonSendASCII.isChecked():
                 if len(inputString):
                     # 转义替换
@@ -657,6 +658,20 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         Slot documentation goes here.
         """
         text = self.textBrowser.textCursor().selectedText()
+        # 去除行分隔符 '\u2028'
+        text = text.replace('\u2028', '')
+        # textb = text.encode('utf8')
+        # print(textb.hex())
+        self.SelectByte = len(text)
+        self.SelectWord = Common.word_count(text)
+        self.InfoSelect.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
+
+    @pyqtSlot()
+    def on_plainTextEdit_selectionChanged(self):
+        """
+        Slot documentation goes here.
+        """
+        text = self.plainTextEdit.textCursor().selectedText()
         # 去除行分隔符 '\u2028'
         text = text.replace('\u2028', '')
         # textb = text.encode('utf8')
