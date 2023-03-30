@@ -299,6 +299,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.autoScroll = False
         while self.streamCursor < offset:
+            time.sleep(0.01)
             streamRead = self.streamCursor
             self.memStream.seek(streamRead, 0)
             dataHead = self.memStream.readline()
