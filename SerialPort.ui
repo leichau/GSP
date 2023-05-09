@@ -506,6 +506,28 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QPushButton" name="colorButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>28</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
@@ -640,6 +662,9 @@
             <bold>true</bold>
            </font>
           </property>
+          <property name="toolTip">
+           <string>Ctrl+Enter</string>
+          </property>
           <property name="text">
            <string>发 送</string>
           </property>
@@ -660,6 +685,10 @@
           <family>Arial</family>
           <pointsize>10</pointsize>
          </font>
+        </property>
+        <property name="toolTip">
+         <string>上一条（Ctrl+Up）
+下一条（Ctrl+Down）</string>
         </property>
        </widget>
       </item>
@@ -737,7 +766,7 @@
     <string>清屏</string>
    </property>
    <property name="toolTip">
-    <string>清屏</string>
+    <string>清屏（Ctrl+Delete）</string>
    </property>
   </action>
   <action name="actionAutoConnect">

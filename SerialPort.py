@@ -7,7 +7,7 @@ import serial, serial.tools.list_ports, threading, re
 import sys, time, traceback
 from datetime import datetime
 from PyQt5.QtCore import pyqtSlot, QAbstractNativeEventFilter, QSettings, pyqtSignal, QSize, QEvent, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QFontDialog, QMenu, QToolButton
+from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QFontDialog, QMenu, QToolButton, QShortcut, QColorDialog
 from PyQt5.QtGui import QTextCursor, QFont, QIcon
 from io import StringIO
 import json
@@ -155,8 +155,26 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.sendView.setChecked(False)
         else:
             self.sendView.setChecked(True)
+        # 发送快捷键
+        self.sendShortcut = QShortcut(self)
+        self.sendShortcut.setKey("Ctrl+Return")
+        self.sendShortcut.setAutoRepeat(False)
+        self.sendShortcut.activated.connect(self.on_pushButtonSend_clicked)
         # 发送历史
         self.sendHistory = []
+        # 发送历史向前快捷键
+        self.historyUpShortcut = QShortcut(self)
+        self.historyUpShortcut.setKey("Ctrl+Up")
+        self.historyUpShortcut.activated.connect(self.serial_send_history_up)
+        # 发送历史向前快捷键
+        self.historyDownShortcut = QShortcut(self)
+        self.historyDownShortcut.setKey("Ctrl+Down")
+        self.historyDownShortcut.activated.connect(self.serial_send_history_down)
+        # 清除快捷键
+        self.clearShortcut = QShortcut(self)
+        self.clearShortcut.setKey("Ctrl+Delete")
+        self.clearShortcut.setAutoRepeat(False)
+        self.clearShortcut.activated.connect(self.on_clear_triggered)
         #显示发送
         EchoEnable = self.settings.value('Echo')
         if EchoEnable and EchoEnable == '1':
@@ -234,7 +252,6 @@ class SerialPort(QMainWindow, Ui_MainWindow):
 
         QMessageBox.warning(self, ExceptType.__name__, '{}'.format(traceback_string),
                                      QMessageBox.Ok, QMessageBox.Ok)
-        
 
     #窗口改变事件
     def changeEvent(self, event):
@@ -478,6 +495,34 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if index == -1:
             index = 0
         self.comboBoxSend.setCurrentIndex(index)
+        self.comboBoxSend.blockSignals(False)
+
+    @pyqtSlot()
+    def serial_send_history_up(self):
+        self.comboBoxSend.blockSignals(True)
+        count = self.comboBoxSend.count()
+        if count <= 1:
+            return
+        index = self.comboBoxSend.currentIndex()
+        inc = count - 1
+        index = (index + inc)%count
+        self.comboBoxSend.setCurrentIndex(index)
+        text = self.comboBoxSend.itemText(index)
+        self.plainTextEdit.setPlainText(text)
+        self.comboBoxSend.blockSignals(False)
+
+    @pyqtSlot()
+    def serial_send_history_down(self):
+        self.comboBoxSend.blockSignals(True)
+        count = self.comboBoxSend.count()
+        if count <= 1:
+            return
+        index = self.comboBoxSend.currentIndex()
+        inc = 1
+        index = (index + inc)%count
+        self.comboBoxSend.setCurrentIndex(index)
+        text = self.comboBoxSend.itemText(index)
+        self.plainTextEdit.setPlainText(text)
         self.comboBoxSend.blockSignals(False)
 
     def serial_send(self):
@@ -1066,6 +1111,15 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         self.monitorCnt = 0
         self.lcdNumber.display(self.monitorCnt)
+
+    @pyqtSlot()
+    def on_colorButton_clicked(self):
+        """
+        Slot documentation goes here.
+        """
+        print('on_colorButton_clicked')
+        color = QColorDialog.getColor(Qt.white, self, "请选择颜色")
+        print(color)
         
     @pyqtSlot(bool)
     def on_checkBoxBeep_toggled(self, checked):
