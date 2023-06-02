@@ -396,7 +396,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.settings.setValue('Font', font)
 
     def serial_recvThread(self):
-        #print(threading.current_thread().name, "start")
+        # print(threading.current_thread().name, "start")
         while self.recvThreadState:
             try:
                 data = self.serial.read_all()
@@ -472,11 +472,11 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             continue
 
     def serial_resendThread(self):
-        self.resendThreadState=True
         while self.resendThreadState:
             if self.spinBoxTime.value():
                 self.serial_send()
                 time.sleep(self.spinBoxTime.value()/1000)
+        self.pushButtonSend.setText("发 送")
 
     def serial_send_history_add(self, item):
         self.comboBoxSend.blockSignals(True)
@@ -628,6 +628,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             port = self.serial.port
             self.serial_recvThreadEnd()
             self.serial.close()
+            self.resendThreadState = False
             self.InfoPort.setStyleSheet("color: red;font: 9pt 'Arial'")
             self.InfoPort.setText('{} CLOSED'.format(port))
             print('serial_close:', port)
@@ -743,17 +744,26 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         Slot documentation goes here.
         """
         if self.checkBoxResend.isChecked():
-            if not self.resendThread.is_alive():
-                self.resendThread = threading.Thread(target=self.serial_resendThread, name='resendThread')
-                #join和setDaemon作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
-                #如果都不设置，主线程和子线程各自运行，互不影响
-                #setDaemon必须在start() 方法调用之前设置，否则程序会被无限挂起。参数True表示主调线程为为守护线程，
-                self.resendThread.setDaemon(True)
-                self.resendThread.start()
-                #join在start()之后调用，参数为超时时间
-                #self.resendThread.join()
+            if self.resendThreadState:
+                self.resendThreadState = False
+                self.pushButtonSend.setText("发 送")
             else:
-                self.resendThreadState=False
+                print('resend', self.serial.isOpen())
+                if not self.serial.isOpen():
+                    print('resend not', self.serial.isOpen())
+                    return
+                print('resend2', self.serial.isOpen())
+                self.resendThreadState = True
+                self.pushButtonSend.setText("停 止")
+                if not self.resendThread.is_alive():
+                    self.resendThread = threading.Thread(target=self.serial_resendThread, name='resendThread')
+                    #join和setDaemon作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
+                    #如果都不设置，主线程和子线程各自运行，互不影响
+                    #setDaemon必须在start() 方法调用之前设置，否则程序会被无限挂起。参数True表示主调线程为为守护线程，
+                    self.resendThread.setDaemon(True)
+                    self.resendThread.start()
+                    #join在start()之后调用，参数为超时时间
+                    #self.resendThread.join()
         else:
             self.serial_send()
 

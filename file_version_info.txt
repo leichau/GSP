@@ -30,12 +30,12 @@ VSVersionInfo(
       StringTable(
         u'040904b0',
         [StringStruct(u'CompanyName', u'llc'),
-        StringStruct(u'FileDescription', u'GSP'),
+        StringStruct(u'FileDescription', u'General Serial Port'),
         StringStruct(u'FileVersion', u'0.1.5'),
         StringStruct(u'InternalName', u'General Serial Port'),
         StringStruct(u'LegalCopyright', u'Copyright © 2023 llc'),
-        StringStruct(u'OriginalFilename', u''),
-        StringStruct(u'ProductName', u'GSP'),
+        StringStruct(u'OriginalFilename', u'GSP.exe'),
+        StringStruct(u'ProductName', u'General Serial Port'),
         StringStruct(u'ProductVersion', u'0.1.5.0'),
         StringStruct(u'SquirrelAwareVersion', u'1'),
         StringStruct(u'', u'')])
