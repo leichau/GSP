@@ -51,7 +51,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
     """
     Class documentation goes here.
     """
-    sigDispaly = pyqtSignal()
+    sigDispaly = pyqtSignal(str)
     sigRxCnt = pyqtSignal(int)
     sigLcdNum = pyqtSignal(int)
 
@@ -127,7 +127,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.comboBoxParity.addItems(["None", "Even", "Odd", "Mark", "Space"])
         self.comboBoxStopBit.addItems(["1", "1.5", "2"])
         self.comboBoxFlow.addItems(["None", "RTS/CTS", "XON/XOFF"])
-        self.serial = serial.Serial(timeout = 2)
+        self.serial = serial.Serial()
         self.autoScroll = True  #接收自动滚动
         #接收监测
         self.monitorCnt = 0
@@ -226,6 +226,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.sigLcdNum.connect(self.lcdNumUpdate)
         self.resendThreadState = False
         self.resendThread = threading.Thread(target=self.serial_resendThread, name='resendThread')
+        # 渲染事件
+        self.renderEvent = threading.Event()
         # 视图工具
         viewMenu = QMenu("view")
         viewMenu.addAction(self.sideView)
@@ -259,7 +261,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             return
         if self.windowState() == Qt.WindowNoState:
             self.serial_recvAutoScroll()
-        print('changeEvent: %d %08X'%(event.type(), self.windowState()))
+        print('%s: %d %08X'%(sys._getframe().f_code.co_name, event.type(), self.windowState()))
 
     def closeEvent(self, event):
         if event.type() == 19:
@@ -272,9 +274,6 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         for i in range(0, count):
             sendList.append(self.comboBoxSend.itemText(i))
         self.settings.setValue('SendList', sendList)
-        # self.stream_displayThreadState = False
-        # while self.displayThread.is_alive():
-        #     pass
 
     def lcdNumUpdate(self, num):
         self.lcdNumber.display(num)
@@ -302,83 +301,85 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.memStream.seek(0, 2)
         self.memStream.write(data)
 
-    def stream_displayRender(self):
-        if self.runStates != SERIAL_RUN:
-            return
-        if not self.memStream.closed:
-            self.memStream.seek(0, 2)
-            offset = self.memStream.tell()
-        else:
-            return
+    def stream_displayRender(self, data):
         #自动下拉滚动条
         if self.textBrowser.verticalScrollBar().value()==self.textBrowser.verticalScrollBar().maximum():
             self.autoScroll = True
         else:
             self.autoScroll = False
-        while self.streamCursor < offset:
-            time.sleep(0.01)
-            streamRead = self.streamCursor
-            self.memStream.seek(streamRead, 0)
-            dataHead = self.memStream.readline()
-            jsonHead = json.loads(dataHead)
-            # print(jsonHead)
-            dataLength = jsonHead['Length']
-            data = self.memStream.read(dataLength)
-            # temp = data.encode("gbk")
-            # print(temp)
-            streamRead = self.memStream.tell()
-            textCursor = self.textBrowser.textCursor()
-            textCursor.movePosition(QTextCursor.End)
-            lineHomeAdd = 0
-            # html 特殊字符处理
-            data = self.htmlCharProcess(data)
-            received = jsonHead['Received']
-            # 接收监测
-            if received:
-                monitorEnable = jsonHead['MonitorEnable']
-                monitor = self.htmlCharProcess(jsonHead['Monitor'])
-                if monitorEnable and len(monitor):
-                    monitorFont = '<span style="background-color: #ffff00">' + monitor + '</span>'
-                    data = data.replace(monitor, monitorFont)
-            # 时间戳
-            timeEnable = jsonHead['TimeEnable']
-            if timeEnable:
-                timestamp = jsonHead['Timestamp']
-                timestamp = '<font color=#800040>' + timestamp + '</font>'
-                if not re.match('(\r\n|\n)', data):
-                    data = timestamp + data
-                else:
-                    data = re.sub('^(\r\n|\n)', '', data)
-                    if len(data):
-                        data = timestamp + '<br />' + timestamp + data
-                    else:
-                        data = timestamp + '<br />'
-                data = re.sub('(\r\n|\n)$', '<br />', data)
-                data = re.sub('(\r\n|\n)', '<br />'+timestamp, data)
-                # 时间戳使能则自动换行
-                if not self.stream_isHome():
-                    lineHomeAdd = 1
-            else:
-                data = re.sub('(\r\n|\n)', '<br />', data)
-            if received:    #接收显示
-                data = '<font color=#000000>' + data + '</font>'
-                # 自动换行
-                lineEnable = jsonHead['LineEnable']
-                if lineEnable:
-                    if not self.stream_isHome():
-                        lineHomeAdd = 1
-            else:   #发送显示
-                data = '<font color=#008000>' + data + '</font>'
-                # 发送显示自动换行
-                if not self.stream_isHome():
-                    lineHomeAdd = 1
-            if lineHomeAdd:
-                data = '<br />' + data
-                print('Insert line home')
-            textCursor.insertHtml(data)
-            self.streamCursor = streamRead
+        textCursor = self.textBrowser.textCursor()
+        textCursor.movePosition(QTextCursor.End)
+        textCursor.insertHtml(data)
+
+    def stream_renderThread(self):
+        while self.recvThreadState:
+            textBuff = ''
+            self.renderEvent.wait()
+            self.renderEvent.clear()
             self.memStream.seek(0, 2)
             offset = self.memStream.tell()
+            while self.streamCursor < offset:
+                # time.sleep(0.01)
+                streamRead = self.streamCursor
+                self.memStream.seek(streamRead, 0)
+                dataHead = self.memStream.readline()
+                jsonHead = json.loads(dataHead)
+                dataLength = jsonHead['Length']
+                data = self.memStream.read(dataLength)
+                streamRead = self.memStream.tell()
+                lineHomeAdd = 0
+                # html 特殊字符处理
+                data = self.htmlCharProcess(data)
+                received = jsonHead['Received']
+                # 接收监测
+                if received:
+                    monitorEnable = jsonHead['MonitorEnable']
+                    monitor = self.htmlCharProcess(jsonHead['Monitor'])
+                    if monitorEnable and len(monitor):
+                        monitorFont = '<span style="background-color: #ffff00">' + monitor + '</span>'
+                        data = data.replace(monitor, monitorFont)
+                # 时间戳
+                timeEnable = jsonHead['TimeEnable']
+                if timeEnable:
+                    timestamp = jsonHead['Timestamp']
+                    timestamp = '<font color=#800040>' + timestamp + '</font>'
+                    if not re.match('(\r\n|\n)', data):
+                        data = timestamp + data
+                    else:
+                        data = re.sub('^(\r\n|\n)', '', data)
+                        if len(data):
+                            data = timestamp + '<br />' + timestamp + data
+                        else:
+                            data = timestamp + '<br />'
+                    data = re.sub('(\r\n|\n)$', '<br />', data)
+                    data = re.sub('(\r\n|\n)', '<br />'+timestamp, data)
+                    # 时间戳使能则自动换行
+                    if not self.stream_isHome():
+                        lineHomeAdd = 1
+                else:
+                    data = re.sub('(\r\n|\n)', '<br />', data)
+                if received:    #接收显示
+                    data = '<font color=#000000>' + data + '</font>'
+                    # 自动换行
+                    lineEnable = jsonHead['LineEnable']
+                    if lineEnable:
+                        if not self.stream_isHome():
+                            lineHomeAdd = 1
+                else:   #发送显示
+                    data = '<font color=#008000>' + data + '</font>'
+                    # 发送显示自动换行
+                    if not self.stream_isHome():
+                        lineHomeAdd = 1
+                if lineHomeAdd:
+                    data = '<br />' + data
+                    print('Insert line home')
+                # textCursor.insertHtml(data)
+                textBuff += data
+                self.streamCursor = streamRead
+                # 指针移到最后
+                self.memStream.seek(0, 2)
+                offset = self.memStream.tell()
+            self.sigDispaly.emit(textBuff)
 
     def serial_recvAutoScroll(self):
         if self.autoScroll:
@@ -399,18 +400,33 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         # print(threading.current_thread().name, "start")
         while self.recvThreadState:
             try:
-                data = self.serial.read_all()
+                self.serial.timeout = None
+                # 阻塞获取一个字节
+                data = self.serial.read()
+                # 显示时间
+                if self.checkBoxTime.isChecked():
+                    jsonTimeEnable = 1
+                    jsonTimestamp = '['+datetime.now().strftime('%H:%M:%S.%f') [:-3]+']'
+                else:
+                    jsonTimeEnable = 0
+                    jsonTimestamp = ''
+                self.serial.timeout = 0.01
+                while True:
+                    temp = self.serial.read(500)
+                    if temp and len(temp):
+                        data += temp
+                    if len(temp) < 500:
+                        break
+                self.serial.timeout = None
             except Exception as e:
                 self.recvThreadState = False
-                print('serial_recvThread error:', str(e))
+                print('{}[{}]: {}'.format(sys._getframe().f_code.co_name, sys._getframe().f_lineno, str(e)))
                 break
             if data and not self.memStream.closed:
                 if self.rxCount > 500*10000:
-                    # print(__file__, sys._getframe().f_lineno)
                     self.clear.trigger()
                     time.sleep(0.05)
                 self.rxCount += len(data)
-                # self.InfoRx.setText('RX: {} Bytes'.format(self.rxCount))
                 self.sigRxCnt.emit(self.rxCount)
                 if self.radioButtonRecvASCII.isChecked():
                     data = data.decode("gbk", "ignore")
@@ -425,20 +441,12 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                         cnt = data.count(self.lineEditMonitor.text())
                         if cnt > 0:
                             self.monitorCnt += cnt
-                            # self.lcdNumber.display(self.monitorCnt)
                             self.sigLcdNum.emit(self.monitorCnt)
                             if self.checkBoxBeep.isChecked():
                                 QApplication.beep()
                 else:
                     jsonMonitorEnable = 0
                     jsonMonitorString = ''
-                #显示时间
-                if self.checkBoxTime.isChecked():
-                    jsonTimeEnable = 1
-                    jsonTimestamp = '['+datetime.now().strftime('%H:%M:%S.%f') [:-3]+']'
-                else:
-                    jsonTimeEnable = 0
-                    jsonTimestamp = ''
                 #自动换行
                 if self.checkBoxNewLine.isChecked():
                     jsonLineEnable = 1
@@ -451,20 +459,22 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                                   jsonTimestamp, jsonLineEnable, jsonMonitorEnable, jsonMonitorString)
                 self.stream_write(jsonHead)
                 self.stream_write(data)
-                self.sigDispaly.emit()
+                self.renderEvent.set()
                 continue
-            time.sleep(0.05)
 
     def serial_recvThreadStart(self):
         self.recvThreadState = True
         self.recvThread = threading.Thread(target=self.serial_recvThread, name='recvThread')
-        #join和setDaemon作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
-        #如果都不设置，主线程和子线程各自运行，互不影响
-        #setDaemon必须在start() 方法调用之前设置，否则程序会被无限挂起。参数True表示主调线程为为守护线程，
+        # join 和 setDaemon 作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
+        # 如果都不设置，主线程和子线程各自运行，互不影响
+        # setDaemon必须在start() 方法调用之前设置，否则程序会被无限挂起。参数True表示主调线程为为守护线程，
         self.recvThread.setDaemon(True)
         self.recvThread.start()
         #join在start()之后调用，参数为超时时间
         #self.recvThread.join()
+        self.renderThread = threading.Thread(target=self.stream_renderThread, name='renderThread')
+        self.renderThread.setDaemon(True)
+        self.renderThread.start()
 
     def serial_recvThreadEnd(self):
         self.recvThreadState = False
@@ -583,7 +593,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 jsonHead = '{"Received":%d, "Length":%d, "TimeEnable":%d, "Timestamp":"%s"}\n'%(jsonRecv, jsonDataLength, jsonTimeEnable, jsonTimestamp)
                 self.stream_write(jsonHead)
                 self.stream_write(data)
-                self.sigDispaly.emit()
+                self.renderEvent.set()
 
     def serial_open(self):
         if self.serial.isOpen():
@@ -594,26 +604,26 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.serial.stopbits == self.stopbits and \
                 self.serial.xonxoff == self.xonxoff and \
                 self.serial.rtscts == self.rtscts:
-                print('serial_open: opend')
+                print(sys._getframe().f_code.co_name + ':', 'opend')
                 return True
             else:
                 self.serial_close()
         try:
-            print('serial_open:', self.port)
-            self.serial = serial.Serial(port=self.port, baudrate=self.baudrate, bytesize=self.bytesize, parity=self.parity, stopbits=self.stopbits, timeout=2,
+            print(sys._getframe().f_code.co_name + ':', self.port)
+            self.serial = serial.Serial(port=self.port, baudrate=self.baudrate, bytesize=self.bytesize, parity=self.parity, stopbits=self.stopbits,
                                              xonxoff=self.xonxoff, rtscts=self.rtscts)
         except serial.SerialException as e:
             print('%s[%d]:%s'%(sys._getframe().f_code.co_name, sys._getframe().f_lineno, str(e)))
             if str(e).find('PermissionError') != -1:
-                print('serial_open: PermissionError')
+                print(sys._getframe().f_code.co_name + ':', 'PermissionError')
             elif str(e).find('FileNotFoundError') != -1:
-                print('serial_open: FileNotFoundError')
+                print(sys._getframe().f_code.co_name + ':', 'FileNotFoundError')
             elif str(e).find('OSError(22,') != -1:
-                print('serial_open: 请求的资源在使用中')
+                print(sys._getframe().f_code.co_name + ':', '请求的资源在使用中')
                 QMessageBox.question(self, '{}'.format(self.port), '无法打开 {}\n请确认是否占用'.format(self.port),
                                      QMessageBox.Ok, QMessageBox.Ok)
             else:
-                print('serial_open: Undefined exception!')
+                print(sys._getframe().f_code.co_name + ':', 'Undefined exception!')
             return False
         self.InfoPort.setStyleSheet("color: green;font: 9pt 'Arial'")
         self.InfoPort.setText('{} OPENED {} {} {}'.format(self.port, self.baudrate, self.bytesize, self.parity))
@@ -631,9 +641,9 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.resendThreadState = False
             self.InfoPort.setStyleSheet("color: red;font: 9pt 'Arial'")
             self.InfoPort.setText('{} CLOSED'.format(port))
-            print('serial_close:', port)
+            print('{}: {}'.format(sys._getframe().f_code.co_name, port))
         else:
-            print('serial_close: closed')
+            print('{}: closed'.format(sys._getframe().f_code.co_name))
         if self.runStates != SERIAL_STOP:
             self.runStates = SERIAL_STOP
             self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
@@ -653,10 +663,10 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             if self.comboBoxPort.count():
                 self.port = portNameList[self.comboBoxPort.currentIndex()]
         if self.port not in portNameList:#端口移除
-            print('serial_port_refresh: remove', self.port)
+            print('{}: remove {}'.format(sys._getframe().f_code.co_name, self.port))
             self.serial_close()
         else:
-            print('serial_port_refresh: insert', self.port)
+            print('{}: insert {}'.format(sys._getframe().f_code.co_name, self.port))
             # print(portNameList)
             self.comboBoxPort.setCurrentIndex(portNameList.index(self.port))
             if self.actionAutoConnect.isChecked():
@@ -784,6 +794,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 portNameList.append(port[0])
             if self.port and self.port in portNameList:
                 self.serial_open()
+            else:
+                print(sys._getframe().f_code.co_name + ': Open failed.', 'Port is {}'.format(self.port))
         elif self.runStates == SERIAL_RUN:
             self.runStates = SERIAL_PAUSE
             self.run.setIcon(QIcon(':/icon/resource/icon/trist_bk48.png'))
@@ -791,7 +803,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.runStates = SERIAL_RUN
             self.run.setIcon(QIcon(':/icon/resource/icon/pause_bk48.png'))
         else:
-            print('on_run_triggered: run state error!')
+            print(sys._getframe().f_code.co_name + ':', 'run state error!')
 
     @pyqtSlot()
     def on_stop_triggered(self):
