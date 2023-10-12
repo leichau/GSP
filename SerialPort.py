@@ -410,7 +410,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 else:
                     jsonTimeEnable = 0
                     jsonTimestamp = ''
-                self.serial.timeout = 0.01
+                self.serial.timeout = 0.002
                 while True:
                     temp = self.serial.read(500)
                     if temp and len(temp):
@@ -421,6 +421,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             except Exception as e:
                 self.recvThreadState = False
                 print('{}[{}]: {}'.format(sys._getframe().f_code.co_name, sys._getframe().f_lineno, str(e)))
+                print(traceback.format_exc())
                 break
             if data and not self.memStream.closed:
                 if self.rxCount > 500*10000:
@@ -636,8 +637,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
     def serial_close(self):
         if self.serial.isOpen():
             port = self.serial.port
-            self.serial_recvThreadEnd()
             self.serial.close()
+            self.serial_recvThreadEnd()
             self.resendThreadState = False
             self.InfoPort.setStyleSheet("color: red;font: 9pt 'Arial'")
             self.InfoPort.setText('{} CLOSED'.format(port))
