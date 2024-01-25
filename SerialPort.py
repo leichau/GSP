@@ -420,8 +420,11 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.serial.timeout = None
             except Exception as e:
                 self.recvThreadState = False
-                print('{}[{}]: {}'.format(sys._getframe().f_code.co_name, sys._getframe().f_lineno, str(e)))
-                print(traceback.format_exc())
+                if str(e).find('OSError(9,') != -1:
+                    print(sys._getframe().f_code.co_name + ':', '端口关闭，退出接收')
+                else:
+                    print('{}[{}]: {}'.format(sys._getframe().f_code.co_name, sys._getframe().f_lineno, str(e)))
+                    print(traceback.format_exc())
                 break
             if data and not self.memStream.closed:
                 if self.rxCount > 500*10000:
@@ -793,6 +796,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             for port_list_0 in port_list:
                 port = list(port_list_0)
                 portNameList.append(port[0])
+            if self.port is None and self.comboBoxPort.count():
+                self.port = portNameList[self.comboBoxPort.currentIndex()]
             if self.port and self.port in portNameList:
                 self.serial_open()
             else:
@@ -1001,6 +1006,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                     self.serial_open()
             else:
                 self.actionAutoConnect.setChecked(False)
+        else:
+            self.port = None
 
     @pyqtSlot(bool)
     def on_codec_triggered(self):
