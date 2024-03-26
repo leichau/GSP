@@ -11,12 +11,15 @@ class Common:
     """
     @staticmethod
     def word_count(pstr):
+        # 字数不统计行分隔符 '\u2028'，段分隔符 '\u2029'
+        text = re.sub(r'[\u2028\u2029]+', '', pstr)
+        byte_len = len(text)
         # 去除首尾空格
         text = pstr.strip(' ')
         if len(text):
-            text = re.sub(r'[ ]+', ' ', text)
+            text = re.sub(r'[ \u2028\u2029]+', ' ', text)
             textList =  re.split(r" ", text)
-            cnt = len(textList)
+            word_len = len(textList)
         else:
-            cnt = 0
-        return cnt
+            word_len = 0
+        return byte_len, word_len

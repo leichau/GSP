@@ -348,12 +348,7 @@ class Codec(QMainWindow, Ui_Codec):
         Slot documentation goes here.
         """
         text = self.inputText.textCursor().selectedText()
-        # 去除行分隔符 '\u2028'
-        text = text.replace('\u2028', '')
-        # textb = text.encode('utf8')
-        # print(textb.hex())
-        self.SelectByte = len(text)
-        self.SelectWord = Common.word_count(text)
+        self.SelectByte, self.SelectWord = Common.word_count(text)
         self.SelectInfo.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
     @pyqtSlot()
@@ -362,12 +357,7 @@ class Codec(QMainWindow, Ui_Codec):
         Slot documentation goes here.
         """
         text = self.outputText.textCursor().selectedText()
-        # 去除行分隔符 '\u2028'
-        text = text.replace('\u2028', '')
-        # textb = text.encode('utf8')
-        # print(textb.hex())
-        self.SelectByte = len(text)
-        self.SelectWord = Common.word_count(text)
+        self.SelectByte, self.SelectWord = Common.word_count(text)
         self.SelectInfo.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
 if __name__ == '__main__':
