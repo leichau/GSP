@@ -617,6 +617,9 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.serial = serial.Serial(port=self.port, baudrate=self.baudrate, bytesize=self.bytesize, parity=self.parity, stopbits=self.stopbits,
                                              xonxoff=self.xonxoff, rtscts=self.rtscts)
         except serial.SerialException as e:
+            self.InfoPort.clear()
+            QApplication.processEvents()
+            time.sleep(0.1)
             print('%s[%d]:%s'%(sys._getframe().f_code.co_name, sys._getframe().f_lineno, str(e)))
             if str(e).find('PermissionError') != -1:
                 print(sys._getframe().f_code.co_name + ':', 'PermissionError')
@@ -628,9 +631,11 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                                      QMessageBox.Ok, QMessageBox.Ok)
             else:
                 print(sys._getframe().f_code.co_name + ':', 'Undefined exception!')
+            self.InfoPort.setStyleSheet("color: red;font: 9pt 'Arial'")
+            self.InfoPort.setText('{} 拒绝访问'.format(self.port))
             return False
         self.InfoPort.setStyleSheet("color: green;font: 9pt 'Arial'")
-        self.InfoPort.setText('{} OPENED {} {} {}'.format(self.port, self.baudrate, self.bytesize, self.parity))
+        self.InfoPort.setText('{} OPENED {} {} {} {}'.format(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits))
         self.serial_recvThreadStart()
         if self.runStates == SERIAL_STOP:
             self.runStates = SERIAL_RUN
@@ -719,12 +724,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         Slot documentation goes here.
         """
         text = self.textBrowser.textCursor().selectedText()
-        # 去除行分隔符 '\u2028'
-        text = text.replace('\u2028', '')
-        # textb = text.encode('utf8')
-        # print(textb.hex())
-        self.SelectByte = len(text)
-        self.SelectWord = Common.word_count(text)
+        self.SelectByte, self.SelectWord = Common.word_count(text)
         self.InfoSelect.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
     @pyqtSlot()
@@ -733,12 +733,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         Slot documentation goes here.
         """
         text = self.plainTextEdit.textCursor().selectedText()
-        # 去除行分隔符 '\u2028'
-        text = text.replace('\u2028', '')
-        # textb = text.encode('utf8')
-        # print(textb.hex())
-        self.SelectByte = len(text)
-        self.SelectWord = Common.word_count(text)
+        self.SelectByte, self.SelectWord = Common.word_count(text)
         self.InfoSelect.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
     @pyqtSlot(bool)
@@ -796,12 +791,14 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             for port_list_0 in port_list:
                 port = list(port_list_0)
                 portNameList.append(port[0])
-            if self.port is None and self.comboBoxPort.count():
+            if self.comboBoxPort.count() == 0:
+                return
+            if self.port is None:
                 self.port = portNameList[self.comboBoxPort.currentIndex()]
-            if self.port and self.port in portNameList:
-                self.serial_open()
-            else:
-                print(sys._getframe().f_code.co_name + ': Open failed.', 'Port is {}'.format(self.port))
+            elif self.port not in portNameList:
+                self.port = portNameList[self.comboBoxPort.currentIndex()]
+            self.serial_open()
+            # print(sys._getframe().f_code.co_name + ': Open failed.', 'Port is {}'.format(self.port))
         elif self.runStates == SERIAL_RUN:
             self.runStates = SERIAL_PAUSE
             self.run.setIcon(QIcon(':/icon/resource/icon/trist_bk48.png'))

@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QWidget, QTextEdit, QFontDialog
 from PyQt5.QtGui import QIcon
 
 from Ui_option import Ui_Option
-from datetime import datetime
+import os.path, time
 
 class Option(QWidget, Ui_Option):
     """
@@ -30,7 +30,8 @@ class Option(QWidget, Ui_Option):
         self.softInfo.setLineWrapMode(QTextEdit.NoWrap)
         self.softInfo.append('Copyright (c) 2017-2022 llc. All Rights Reserved.')
         self.softInfo.append('\n当前版本：0.1.5')
-        self.softInfo.append('创建时间: {}'.format(datetime.now().strftime('%Y-%m-%dT%H:%M:%S+0800')))
+        self.softInfo.append('创建时间: {}'.format(time.strftime('%Y-%m-%dT%H:%M:%S+0800', \
+                                                  time.localtime(os.path.getmtime("GSP.exe")))))
         self.softInfo.append('版本状态：试用版')
         self.softInfo.append('更新内容：')
         self.softInfo.append('通用：添加静态版本信息')

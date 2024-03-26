@@ -1,10 +1,11 @@
 rd /s /q .\build\GSP
-@rem -F: generate single file
-@rem -w: no console for windows system. Helpful for running exception.
-@rem -i: icon file
-@rem --version-file: soft version information.
-@rem -n: Name to assign to the bundled app.
+@REM -F: generate single file
+@REM -w: no console for windows system. Helpful for running exception.
+@REM -i: icon file
+@REM --version-file: soft version information.
+@REM -n: Name to assign to the bundled app.
 pyinstaller -F -w -i .\resource\icon\serial256.ico --version-file file_version_info.txt -n GSP SerialPort.py
-@rem pyinstaller -F -w -i .\resource\icon\codec256.ico --version-file codec_version_info.txt Codec.py
-@rem xcopy "D:\Program Files\Python\Python36\Lib\site-packages\PyQt5\Qt\plugins\styles" .\dist\styles\
+@REM pyinstaller -F -w -i .\resource\icon\codec256.ico --version-file codec_version_info.txt -n Codec Codec.py
+@REM xcopy "D:\Program Files\Python\Python36\Lib\site-packages\PyQt5\Qt\plugins\styles" .\dist\styles\
 pause
+ 
