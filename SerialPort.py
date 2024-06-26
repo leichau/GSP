@@ -458,10 +458,16 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                     jsonLineEnable = 0
                 jsonRecv = 1
                 jsonDataLength = len(data)
-                jsonHead = '{"Received":%d, "Length":%d, "TimeEnable":%d, "Timestamp":"%s", "LineEnable":%d, '\
-                    '"MonitorEnable":%d, "Monitor":"%s"}\n'%(jsonRecv, jsonDataLength, jsonTimeEnable, \
-                                  jsonTimestamp, jsonLineEnable, jsonMonitorEnable, jsonMonitorString)
-                self.stream_write(jsonHead)
+                jsonHead = {}
+                jsonHead["Received"] = jsonRecv
+                jsonHead["Length"] = jsonDataLength
+                jsonHead["TimeEnable"] = jsonTimeEnable
+                jsonHead["Timestamp"] = jsonTimestamp
+                jsonHead["LineEnable"] = jsonLineEnable
+                jsonHead["MonitorEnable"] = jsonMonitorEnable
+                jsonHead["Monitor"] = jsonMonitorString
+                jsonHead = json.dumps(jsonHead)
+                self.stream_write("%s\n" % jsonHead)
                 self.stream_write(data)
                 self.renderEvent.set()
                 continue
