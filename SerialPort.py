@@ -6,14 +6,14 @@ Module implementing SerialPort.
 import serial, serial.tools.list_ports, threading, re
 import sys, time, traceback
 from datetime import datetime
-from PyQt5.QtCore import pyqtSlot, QAbstractNativeEventFilter, QSettings, pyqtSignal, QSize, QEvent, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QFontDialog, QMenu, QToolButton, QShortcut, QColorDialog
-from PyQt5.QtGui import QTextCursor, QFont, QIcon
+from PySide6.QtCore import Slot, QAbstractNativeEventFilter, QSettings, Signal, QSize, QEvent, Qt
+from PySide6.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QFontDialog, QMenu, QToolButton, QColorDialog
+from PySide6.QtGui import QTextCursor, QFont, QIcon, QShortcut
 from io import StringIO
 import json
 import ctypes.wintypes
 
-from Ui_SerialPort import Ui_MainWindow
+from SerialPort_ui import Ui_MainWindow
 from Codec import Codec
 from About import About
 from AutoConnect import AutoConnect
@@ -51,9 +51,9 @@ class SerialPort(QMainWindow, Ui_MainWindow):
     """
     Class documentation goes here.
     """
-    sigDispaly = pyqtSignal(str)
-    sigRxCnt = pyqtSignal(int)
-    sigLcdNum = pyqtSignal(int)
+    sigDispaly = Signal(str)
+    sigRxCnt = Signal(int)
+    sigLcdNum = Signal(int)
 
     def __init__(self, parent=None):
         """
@@ -68,7 +68,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         # 去掉标题栏
         # self.setWindowFlags(Qt.FramelessWindowHint)
         # self.setWindowIcon(QIcon(':/icon/resource/icon/serial256.ico'))
-        self.toolBar.setIconSize(QSize(40,40))
+        self.toolBar.setIconSize(QSize(32, 32))
         self.settings = QSettings("./user.ini", QSettings.IniFormat)
         #接收栏字体
         textBrowserFont = self.settings.value('Font')
@@ -229,16 +229,16 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         # 渲染事件
         self.renderEvent = threading.Event()
         # 视图工具
-        viewMenu = QMenu("view")
-        viewMenu.addAction(self.sideView)
-        viewMenu.addAction(self.sendView)
+        self.viewMenu = QMenu("view")
+        self.viewMenu.addAction(self.sideView)
+        self.viewMenu.addAction(self.sendView)
         self.viewLayout = QToolButton()
-        self.viewLayout.setMenu(viewMenu)
+        self.viewLayout.setMenu(self.viewMenu)
         self.viewLayout.setToolTip("视图")
         self.viewLayout.setPopupMode(QToolButton.MenuButtonPopup)
         self.viewLayout.setIcon(QIcon(':/icon/resource/icon/view48.png'))
         self.toolBar.insertWidget(self.option, self.viewLayout)
-        self.viewLayout.clicked.connect(self.on_viewLayout_clicked)
+        self.viewLayout.clicked.connect(self.viewLayout_clicked)
         # 异常捕获
         sys.excepthook = self.unknown_exceptions
 
@@ -255,13 +255,13 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         QMessageBox.warning(self, ExceptType.__name__, '{}'.format(traceback_string),
                                      QMessageBox.Ok, QMessageBox.Ok)
 
-    #窗口改变事件
+    # 窗口改变事件
     def changeEvent(self, event):
         if event.type() != QEvent.WindowStateChange:
             return
         if self.windowState() == Qt.WindowNoState:
             self.serial_recvAutoScroll()
-        print('%s: %d %08X'%(sys._getframe().f_code.co_name, event.type(), self.windowState()))
+        print('{}: {} {:0>8X}'.format(sys._getframe().f_code.co_name, event.type(), self.windowState().value))
 
     def closeEvent(self, event):
         if event.type() == 19:
@@ -517,7 +517,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.comboBoxSend.setCurrentIndex(index)
         self.comboBoxSend.blockSignals(False)
 
-    @pyqtSlot()
+    @Slot()
     def serial_send_history_up(self):
         self.comboBoxSend.blockSignals(True)
         count = self.comboBoxSend.count()
@@ -531,7 +531,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.plainTextEdit.setPlainText(text)
         self.comboBoxSend.blockSignals(False)
 
-    @pyqtSlot()
+    @Slot()
     def serial_send_history_down(self):
         self.comboBoxSend.blockSignals(True)
         count = self.comboBoxSend.count()
@@ -717,14 +717,14 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.comboBoxSend.setParent(None)
             self.dataLayout.removeItem(self.sendBox)
 
-    @pyqtSlot()
+    @Slot()
     def on_textBrowser_textChanged(self):
         """
         Slot documentation goes here.
         """
         self.serial_recvAutoScroll()
 
-    @pyqtSlot()
+    @Slot()
     def on_textBrowser_selectionChanged(self):
         """
         Slot documentation goes here.
@@ -733,7 +733,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.SelectByte, self.SelectWord = Common.word_count(text)
         self.InfoSelect.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
-    @pyqtSlot()
+    @Slot()
     def on_plainTextEdit_selectionChanged(self):
         """
         Slot documentation goes here.
@@ -742,7 +742,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.SelectByte, self.SelectWord = Common.word_count(text)
         self.InfoSelect.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_checkBoxResend_toggled(self, checked):
         """
         Slot documentation goes here.
@@ -753,7 +753,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if not checked:
             self.resendThreadState=False
 
-    @pyqtSlot()
+    @Slot()
     def on_pushButtonSend_clicked(self):
         """
         Slot documentation goes here.
@@ -782,7 +782,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.serial_send()
 
-    @pyqtSlot(bool)
+    @Slot()
     def on_run_triggered(self):
         """
         Slot documentation goes here.
@@ -814,7 +814,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             print(sys._getframe().f_code.co_name + ':', 'run state error!')
 
-    @pyqtSlot()
+    @Slot()
     def on_stop_triggered(self):
         """
         Slot documentation goes here.
@@ -822,7 +822,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.actionAutoConnect.setChecked(False)
         self.serial_close()
 
-    @pyqtSlot()
+    @Slot()
     def on_clear_triggered(self):
         """
         Slot documentation goes here.
@@ -838,7 +838,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.lcdNumber.display(self.monitorCnt)
         self.memStream = StringIO()
 
-    @pyqtSlot(int)
+    @Slot(int)
     def on_comboBoxPort_currentIndexChanged(self, index):
         """
         Slot documentation goes here.
@@ -858,7 +858,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if self.runStates != SERIAL_STOP:
             self.serial_open()
 
-    @pyqtSlot(int)
+    @Slot(int)
     def on_comboBoxBaud_currentIndexChanged(self, index):
         """
         Slot documentation goes here.
@@ -875,7 +875,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             if self.runStates != SERIAL_STOP:
                 self.serial_open()
 
-    @pyqtSlot(str)
+    @Slot(str)
     def on_comboBoxBaud_editTextChanged(self, p0):
         """
         Slot documentation goes here.
@@ -889,7 +889,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             if self.runStates != SERIAL_STOP:
                 self.serial_open()
 
-    @pyqtSlot(int)
+    @Slot(int)
     def on_comboBoxDataBit_currentIndexChanged(self, index):
         """
         Slot documentation goes here.
@@ -901,7 +901,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if self.runStates != SERIAL_STOP:
             self.serial_open()
 
-    @pyqtSlot(int)
+    @Slot(int)
     def on_comboBoxFlow_currentIndexChanged(self, index):
         """
         Slot documentation goes here.
@@ -921,7 +921,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if self.runStates != SERIAL_STOP:
             self.serial_open()
 
-    @pyqtSlot(int)
+    @Slot(int)
     def on_comboBoxStopBit_currentIndexChanged(self, index):
         """
         Slot documentation goes here.
@@ -933,7 +933,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if self.runStates != SERIAL_STOP:
             self.serial_open()
 
-    @pyqtSlot(int)
+    @Slot(int)
     def on_comboBoxParity_currentIndexChanged(self, index):
         """
         Slot documentation goes here.
@@ -946,7 +946,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if self.runStates != SERIAL_STOP:
             self.serial_open()
 
-    @pyqtSlot(str)
+    @Slot(str)
     def on_comboBoxSend_textActivated(self, text):
         """
         Slot documentation goes here.
@@ -958,35 +958,35 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if len(text):
             self.plainTextEdit.setPlainText(text)
 
-    @pyqtSlot()
+    @Slot()
     def on_radioButtonRecvASCII_pressed(self):
         """
         Slot documentation goes here.
         """
         self.settings.setValue('RecvFormat', 1)
 
-    @pyqtSlot()
+    @Slot()
     def on_radioButtonRecvHex_pressed(self):
         """
         Slot documentation goes here.
         """
         self.settings.setValue('RecvFormat', 0)
 
-    @pyqtSlot()
+    @Slot()
     def on_radioButtonSendASCII_pressed(self):
         """
         Slot documentation goes here.
         """
         self.settings.setValue('SendFormat', 1)
 
-    @pyqtSlot()
+    @Slot()
     def on_radioButtonSendHex_pressed(self):
         """
         Slot documentation goes here.
         """
         self.settings.setValue('SendFormat', 0)
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_actionAutoConnect_toggled(self, p0):
         """
         Slot documentation goes here.
@@ -1012,7 +1012,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.port = None
 
-    @pyqtSlot(bool)
+    @Slot()
     def on_codec_triggered(self):
         """
         Slot documentation goes here.
@@ -1026,7 +1026,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         # 窗口前置
         codec.activateWindow()
 
-    @pyqtSlot()
+    @Slot()
     def on_about_triggered(self):
         """
         Slot documentation goes here.
@@ -1034,7 +1034,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         aboutSoft.show()
         aboutSoft.softInfo.verticalScrollBar().setValue(0)
 
-    @pyqtSlot()
+    @Slot()
     def on_option_triggered(self):
         """
         Slot documentation goes here.
@@ -1042,7 +1042,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.option = Option(self)
         self.option.show()
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_sideView_toggled(self, p0):
         """
         Slot documentation goes here.
@@ -1051,13 +1051,14 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         @type bool
         """
         if p0:
-            self.horizontalLayout.insertLayout(0, self.sideLayout)
+            if self.horizontalLayout.indexOf(self.sideLayout) == -1:
+                self.horizontalLayout.insertLayout(0, self.sideLayout)
         else:
             #horizontalLayout为应用于centralWidget的布局，从horizontalLayout删除即为从centralWidget删除
             self.horizontalLayout.removeItem(self.sideLayout)
         print('side view:', p0)
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_sendView_toggled(self, p0):
         """
         Slot documentation goes here.
@@ -1071,8 +1072,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.settings.setValue('SendView', 0)
 
-    @pyqtSlot()
-    def on_viewLayout_clicked(self):
+    @Slot()
+    def viewLayout_clicked(self):
         """
         Slot documentation goes here.
         """
@@ -1098,7 +1099,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.horizontalLayout.removeItem(self.sideLayout)
                 self.view_send_visible(False)
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_checkBoxNewLine_toggled(self, checked):
         """
         Slot documentation goes here.
@@ -1111,7 +1112,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.settings.setValue('AutoWrap', 0)
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_checkBoxEcho_toggled(self, checked):
         """
         Slot documentation goes here.
@@ -1124,7 +1125,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.settings.setValue('Echo', 0)
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_checkBoxTime_toggled(self, checked):
         """
         Slot documentation goes here.
@@ -1137,7 +1138,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.settings.setValue('Time', 0)
 
-    @pyqtSlot()
+    @Slot()
     def on_monitorClear_clicked(self):
         """
         Slot documentation goes here.
@@ -1145,7 +1146,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.monitorCnt = 0
         self.lcdNumber.display(self.monitorCnt)
 
-    @pyqtSlot()
+    @Slot()
     def on_colorButton_clicked(self):
         """
         Slot documentation goes here.
@@ -1154,7 +1155,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         color = QColorDialog.getColor(Qt.white, self, "请选择颜色")
         print(color)
         
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_checkBoxBeep_toggled(self, checked):
         """
         Slot documentation goes here.
@@ -1167,7 +1168,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.settings.setValue('Beep', 0)
     
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_checkBoxMonitor_toggled(self, checked):
         """
         Slot documentation goes here.
@@ -1180,7 +1181,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.settings.setValue('Monitor', 0)
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_sendReturn_toggled(self, checked):
         """
         Slot documentation goes here.
@@ -1193,7 +1194,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         else:
             self.settings.setValue('Return', 0)
     
-    @pyqtSlot(bool)
+    @Slot(bool)
     def on_sendEscape_toggled(self, checked):
         """
         Slot documentation goes here.
@@ -1236,6 +1237,7 @@ class SysEventFilter(QAbstractNativeEventFilter):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setStyle("WindowsVista")
     app.setWindowIcon(QIcon(':/icon/resource/icon/serial256.ico'))
     dlg = SerialPort()
     dlg.show()
@@ -1243,6 +1245,6 @@ if __name__ == '__main__':
     app.installNativeEventFilter(sysMsg)
     codec = Codec()
     aboutSoft=About()
-    ret = app.exec_()
+    ret = app.exec()
     print('Exit', ret)
     sys.exit(ret)

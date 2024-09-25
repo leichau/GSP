@@ -5,12 +5,12 @@ Module implementing Codec.
 """
 import hashlib
 import sys, re
-from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QMainWindow, QLabel
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QIcon
+from PySide6.QtCore import Slot, Qt
+from PySide6.QtWidgets import QMainWindow, QLabel
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QIcon
 
-from Ui_Codec import Ui_Codec
+from Codec_ui import Ui_Codec
 from common import Common
 
 '''
@@ -323,15 +323,7 @@ class Codec(QMainWindow, Ui_Codec):
             self.OutputInfo.setText('输出: %d' % len(outputData))
         self.outputText.setText(outputData)
     
-    @pyqtSlot()
-    def on_pushButtonClear_clicked(self):
-        """
-        Slot documentation goes here.
-        """
-        # TODO: not implemented yet
-        raise NotImplementedError
-    
-    @pyqtSlot()
+    @Slot()
     def on_pushButtonStart_clicked(self):
         """
         Slot documentation goes here.
@@ -342,7 +334,7 @@ class Codec(QMainWindow, Ui_Codec):
             #乱码处理
             self.garbled()
 
-    @pyqtSlot()
+    @Slot()
     def on_inputText_selectionChanged(self):
         """
         Slot documentation goes here.
@@ -351,7 +343,7 @@ class Codec(QMainWindow, Ui_Codec):
         self.SelectByte, self.SelectWord = Common.word_count(text)
         self.SelectInfo.setText('{} 词 / {} 字'.format(self.SelectWord, self.SelectByte))
 
-    @pyqtSlot()
+    @Slot()
     def on_outputText_selectionChanged(self):
         """
         Slot documentation goes here.

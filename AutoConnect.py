@@ -4,10 +4,10 @@
 Module implementing AutoConnect.
 """
 
-from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QDialog
+from PySide6.QtCore import Slot, Qt
+from PySide6.QtWidgets import QDialog
 
-from Ui_AutoConnect import Ui_Dialog
+from AutoConnect_ui import Ui_Dialog
 
 import serial
 
@@ -49,7 +49,7 @@ class AutoConnect(QDialog, Ui_Dialog):
             self.comboBoxPort.setCurrentIndex(index)
         self.port = None
     
-    @pyqtSlot(int)
+    @Slot(int)
     def on_comboBoxPort_currentIndexChanged(self, index):
         """
         Slot documentation goes here.
@@ -59,14 +59,14 @@ class AutoConnect(QDialog, Ui_Dialog):
         """
         #print('current index:', index)
     
-    @pyqtSlot()
+    @Slot()
     def on_pushButtonCancel_clicked(self):
         """
         Slot documentation goes here.
         """
         self.reject()
     
-    @pyqtSlot()
+    @Slot()
     def on_pushButtonOk_clicked(self):
         """
         Slot documentation goes here.

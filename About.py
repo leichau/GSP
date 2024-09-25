@@ -3,9 +3,9 @@
 Module implementing Codec.
 """
 
-from PyQt5.QtWidgets import QDialog, QTextEdit
+from PySide6.QtWidgets import QDialog, QTextEdit
 
-from Ui_About import Ui_About
+from About_ui import Ui_About
 
 
 class About(QDialog, Ui_About):

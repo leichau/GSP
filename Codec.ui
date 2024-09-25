@@ -101,9 +101,8 @@
            </property>
            <property name="font">
             <font>
-             <family>Arial</family>
+             <family>微软雅黑</family>
              <pointsize>12</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -136,13 +135,9 @@
        <font>
         <family>微软雅黑</family>
         <pointsize>11</pointsize>
-        <weight>50</weight>
         <bold>false</bold>
         <kerning>true</kerning>
        </font>
-      </property>
-      <property name="layoutDirection">
-       <enum>Qt::LeftToRight</enum>
       </property>
       <property name="title">
        <string/>
@@ -181,9 +176,8 @@
            </property>
            <property name="font">
             <font>
-             <family>Arial</family>
-             <pointsize>12</pointsize>
-             <weight>50</weight>
+             <family>微软雅黑</family>
+             <pointsize>11</pointsize>
              <bold>false</bold>
              <kerning>true</kerning>
             </font>
@@ -196,7 +190,6 @@
             <font>
              <family>微软雅黑</family>
              <pointsize>11</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
              <kerning>true</kerning>
             </font>
@@ -218,7 +211,6 @@
             <font>
              <family>Consolas</family>
              <pointsize>12</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
              <kerning>true</kerning>
             </font>
@@ -231,7 +223,6 @@
             <font>
              <family>微软雅黑</family>
              <pointsize>11</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
              <kerning>true</kerning>
             </font>
@@ -252,7 +243,6 @@
           <font>
            <family>Consolas</family>
            <pointsize>12</pointsize>
-           <weight>50</weight>
            <bold>false</bold>
            <kerning>true</kerning>
           </font>
