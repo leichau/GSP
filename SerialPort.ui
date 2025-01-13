@@ -131,7 +131,7 @@
            <item>
             <widget class="QComboBox" name="comboBoxPort">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -220,36 +220,6 @@
           <number>5</number>
          </property>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <item>
-            <widget class="QRadioButton" name="radioButtonRecvASCII">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>ASCII</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioButtonRecvHex">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>HEX</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_9">
            <item>
             <widget class="QCheckBox" name="checkBoxTime">
@@ -274,6 +244,47 @@
              </property>
              <property name="text">
               <string>自动换行</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_11">
+           <item>
+            <widget class="QCheckBox" name="checkBoxEcho">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>显示发送</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="transceiveMark">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>收发标记</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_12">
+           <item>
+            <widget class="QCheckBox" name="dispHex">
+             <property name="text">
+              <string>十六进制</string>
              </property>
             </widget>
            </item>
@@ -309,50 +320,14 @@
           <number>5</number>
          </property>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <layout class="QHBoxLayout" name="horizontalLayout_13">
            <item>
-            <widget class="QRadioButton" name="radioButtonSendASCII">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
+            <widget class="QCheckBox" name="sendHex">
              <property name="text">
-              <string>ASCII</string>
+              <string>十六进制</string>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QRadioButton" name="radioButtonSendHex">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>HEX</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBoxEcho">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>显示发送</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_10">
            <item>
             <widget class="QCheckBox" name="sendReturn">
              <property name="sizePolicy">
@@ -366,6 +341,10 @@
              </property>
             </widget>
            </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_10">
            <item>
             <widget class="QCheckBox" name="sendEscape">
              <property name="sizePolicy">
@@ -711,6 +690,7 @@
    <addaction name="actionAutoConnect"/>
    <addaction name="clear"/>
    <addaction name="separator"/>
+   <addaction name="outfile"/>
    <addaction name="option"/>
    <addaction name="codec"/>
   </widget>
@@ -739,15 +719,6 @@
    </property>
    <property name="text">
     <string>编码转换</string>
-   </property>
-  </action>
-  <action name="about">
-   <property name="icon">
-    <iconset resource="imgResource.qrc">
-     <normaloff>:/icon/resource/icon/setting48.png</normaloff>:/icon/resource/icon/setting48.png</iconset>
-   </property>
-   <property name="text">
-    <string>关于</string>
    </property>
   </action>
   <action name="clear">
@@ -809,6 +780,20 @@
    </property>
    <property name="toolTip">
     <string>设置</string>
+   </property>
+  </action>
+  <action name="outfile">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::GoDown"/>
+   </property>
+   <property name="text">
+    <string>导出</string>
+   </property>
+   <property name="toolTip">
+    <string>导出文件</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
  </widget>

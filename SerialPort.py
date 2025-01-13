@@ -7,7 +7,7 @@ import serial, serial.tools.list_ports, threading, re
 import sys, time, traceback
 from datetime import datetime
 from PySide6.QtCore import Slot, QAbstractNativeEventFilter, QSettings, Signal, QSize, QEvent, Qt
-from PySide6.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QFontDialog, QMenu, QToolButton, QColorDialog
+from PySide6.QtWidgets import QMainWindow, QApplication, QMessageBox, QLabel, QMenu, QToolButton, QColorDialog, QFileDialog
 from PySide6.QtGui import QTextCursor, QFont, QIcon, QShortcut
 from io import StringIO
 import json
@@ -15,7 +15,6 @@ import ctypes.wintypes
 
 from SerialPort_ui import Ui_MainWindow
 from Codec import Codec
-from About import About
 from AutoConnect import AutoConnect
 from option import Option
 from common import Common
@@ -38,13 +37,13 @@ from common import Common
 13、数据量达到限值清除时，异常退出                  已解决
     - 初步分析清除调用 textBrowser.clear 导致
     - 子线程调用 GUI 更新所致
-14、添加收发标记
+14、添加收发标记                           完成
 15、按照 html/css 语法实现全局颜色控制
 16、接收为查询接收，不利于时间测量
 '''
 
-SERIAL_STOP = 0
-SERIAL_RUN  = 1
+SERIAL_STOP  = 0
+SERIAL_RUN   = 1
 SERIAL_PAUSE = 2
 
 class SerialPort(QMainWindow, Ui_MainWindow):
@@ -70,7 +69,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         # self.setWindowIcon(QIcon(':/icon/resource/icon/serial256.ico'))
         self.toolBar.setIconSize(QSize(32, 32))
         self.settings = QSettings("./user.ini", QSettings.IniFormat)
-        #接收栏字体
+        # 接收栏字体
         textBrowserFont = self.settings.value('Font')
         if textBrowserFont:
             textBrowserFont = textBrowserFont.split(',')
@@ -81,39 +80,39 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 font = QFont(family, pointSize,  weight)
                 if font:
                     self.textBrowser.setFont(font)
-        #显示时间
+        # 显示时间
         DisplayTime = self.settings.value('Time')
         if DisplayTime and DisplayTime == '1':
             self.checkBoxTime.setChecked(True)
         else:
             self.checkBoxTime.setChecked(False)
-        #自动换行
+        # 自动换行
         AutoWrap = self.settings.value('AutoWrap')
         if AutoWrap and AutoWrap == '1':
             self.checkBoxNewLine.setChecked(True)
         else:
             self.checkBoxNewLine.setChecked(False)
-        #接收格式 1:ASCII  0:HEX
-        RecvFormat = self.settings.value('RecvFormat')
-        if RecvFormat and RecvFormat == "0":
-            self.radioButtonRecvHex.setChecked(True)
+        # 显示格式
+        DisplayFormat = self.settings.value('DisplayFormat')
+        if DisplayFormat and DisplayFormat == "1":
+            self.dispHex.setChecked(True)
         else:
-            self.radioButtonRecvASCII.setChecked(True)
-        #发送格式 1:ASCII  0:HEX
+            self.dispHex.setChecked(False)
+        # 发送格式
         SendFormat = self.settings.value('SendFormat')
-        if SendFormat and SendFormat == "0":
-            self.radioButtonSendHex.setChecked(True)
+        if SendFormat and SendFormat == "1":
+            self.sendHex.setChecked(True)
         else:
-            self.radioButtonSendASCII.setChecked(True)
+            self.sendHex.setChecked(False)
         # 运行状态
         self.runStates = SERIAL_STOP
-        #自动连接端口
+        # 自动连接端口
         AutoConnectPort = self.settings.value('Auto')
         if AutoConnectPort:
             self.AutoConnectPort = AutoConnectPort
         else:
             self.AutoConnectPort = None
-        #获取端口
+        # 获取端口
         self.port = None
         port_list=list(serial.tools.list_ports.comports())
         port_list.sort()
@@ -128,8 +127,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.comboBoxStopBit.addItems(["1", "1.5", "2"])
         self.comboBoxFlow.addItems(["None", "RTS/CTS", "XON/XOFF"])
         self.serial = serial.Serial()
-        self.autoScroll = True  #接收自动滚动
-        #接收监测
+        self.autoScroll = True  # 接收自动滚动
+        # 接收监测
         self.monitorCnt = 0
         self.lcdNumber.display(self.monitorCnt)
         MonitorEnable = self.settings.value('Monitor')
@@ -137,19 +136,19 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.checkBoxMonitor.setChecked(True)
         else:
             self.checkBoxMonitor.setChecked(False)
-        #提示音
+        # 提示音
         BeepEnable = self.settings.value('Beep')
         if BeepEnable and BeepEnable == '1':
             self.checkBoxBeep.setChecked(True)
         else:
             self.checkBoxBeep.setChecked(False)
-        #设置栏
+        # 设置栏
         sideView = self.settings.value('sideView')
         if sideView and sideView == '0':
             self.sideView.setChecked(False)
         else:
             self.sideView.setChecked(True)
-        #发送栏
+        # 发送栏
         sendView = self.settings.value('SendView')
         if sendView and sendView == '0':
             self.sendView.setChecked(False)
@@ -175,34 +174,40 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.clearShortcut.setKey("Ctrl+Delete")
         self.clearShortcut.setAutoRepeat(False)
         self.clearShortcut.activated.connect(self.on_clear_triggered)
-        #显示发送
+        # 显示发送
         EchoEnable = self.settings.value('Echo')
         if EchoEnable and EchoEnable == '1':
             self.checkBoxEcho.setChecked(True)
         else:
             self.checkBoxEcho.setChecked(False)
-        #添加回车
+        # 收发标记
+        TransceiveMark = self.settings.value('TransceiveMark')
+        if TransceiveMark and TransceiveMark == '1':
+            self.transceiveMark.setChecked(True)
+        else:
+            self.transceiveMark.setChecked(False)
+        # 添加回车
         SendReturnEnable = self.settings.value('Return')
         if SendReturnEnable and SendReturnEnable == '1':
             self.sendReturn.setChecked(True)
         else:
             self.sendReturn.setChecked(False)
-        #转义序列
+        # 转义序列
         EscapeEnable = self.settings.value('Escape')
         if EscapeEnable and EscapeEnable == '1':
             self.sendEscape.setChecked(True)
         else:
             self.sendEscape.setChecked(False)
-        #发送列表
+        # 发送列表
         SendList = self.settings.value('SendList')
         if SendList:
             self.comboBoxSend.addItems(SendList)
-        #收发统计
+        # 收发统计
         self.rxCount = 0
         self.txCount = 0
         self.SelectByte = 0
         self.SelectWord = 0
-        #状态条信息
+        # 状态条信息
         self.InfoPort = QLabel()
         self.InfoPort.setStyleSheet("color: red;font: 9pt 'Arial'")
         self.InfoPort.setText('CLOSED')
@@ -237,7 +242,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.viewLayout.setToolTip("视图")
         self.viewLayout.setPopupMode(QToolButton.MenuButtonPopup)
         self.viewLayout.setIcon(QIcon(':/icon/resource/icon/view48.png'))
-        self.toolBar.insertWidget(self.option, self.viewLayout)
+        self.toolBar.insertWidget(self.outfile, self.viewLayout)
         self.viewLayout.clicked.connect(self.viewLayout_clicked)
         # 异常捕获
         sys.excepthook = self.unknown_exceptions
@@ -288,7 +293,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         data = re.sub('(>)', '&gt;', data)
         return data
 
-    #行首检测
+    # 行首检测
     def stream_isHome(self):
         if self.streamCursor > 0:
             self.memStream.seek(self.streamCursor-1, 0)
@@ -302,7 +307,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.memStream.write(data)
 
     def stream_displayRender(self, data):
-        #自动下拉滚动条
+        # 自动下拉滚动条
         if self.textBrowser.verticalScrollBar().value()==self.textBrowser.verticalScrollBar().maximum():
             self.autoScroll = True
         else:
@@ -338,6 +343,13 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                     if monitorEnable and len(monitor):
                         monitorFont = '<span style="background-color: #ffff00">' + monitor + '</span>'
                         data = data.replace(monitor, monitorFont)
+                # 收发标记
+                transceiveMark = jsonHead['TransceiveMark']
+                if transceiveMark:
+                    if received:
+                        data = '⮞' + data
+                    else:
+                        data = '⮜' + data
                 # 时间戳
                 timeEnable = jsonHead['TimeEnable']
                 if timeEnable:
@@ -358,14 +370,14 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                         lineHomeAdd = 1
                 else:
                     data = re.sub('(\r\n|\n)', '<br />', data)
-                if received:    #接收显示
+                if received:    # 接收显示
                     data = '<font color=#000000>' + data + '</font>'
                     # 自动换行
                     lineEnable = jsonHead['LineEnable']
                     if lineEnable:
                         if not self.stream_isHome():
                             lineHomeAdd = 1
-                else:   #发送显示
+                else:   # 发送显示
                     data = '<font color=#008000>' + data + '</font>'
                     # 发送显示自动换行
                     if not self.stream_isHome():
@@ -383,7 +395,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
 
     def serial_recvAutoScroll(self):
         if self.autoScroll:
-            #self.textBrowser.moveCursor(QTextCursor.End)
+            # self.textBrowser.moveCursor(QTextCursor.End)
             max = self.textBrowser.verticalScrollBar().maximum()
             self.textBrowser.verticalScrollBar().setSliderPosition(max)
 
@@ -432,12 +444,12 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                     time.sleep(0.05)
                 self.rxCount += len(data)
                 self.sigRxCnt.emit(self.rxCount)
-                if self.radioButtonRecvASCII.isChecked():
+                if not self.dispHex.isChecked():
                     data = data.decode("gbk", "ignore")
                 else:
                     data = ' '.join("%02X" % x for x in data)
                     data = data + ' '
-                #接收监测
+                # 接收监测
                 if self.checkBoxMonitor.isChecked():
                     jsonMonitorEnable = 1
                     jsonMonitorString = self.lineEditMonitor.text()
@@ -451,11 +463,16 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 else:
                     jsonMonitorEnable = 0
                     jsonMonitorString = ''
-                #自动换行
+                # 自动换行
                 if self.checkBoxNewLine.isChecked():
                     jsonLineEnable = 1
                 else:
                     jsonLineEnable = 0
+                # 收发标记
+                if self.transceiveMark.isChecked():
+                    jsonTransceiveMark = 1
+                else:
+                    jsonTransceiveMark = 0
                 jsonRecv = 1
                 jsonDataLength = len(data)
                 jsonHead = {}
@@ -464,11 +481,11 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 jsonHead["TimeEnable"] = jsonTimeEnable
                 jsonHead["Timestamp"] = jsonTimestamp
                 jsonHead["LineEnable"] = jsonLineEnable
+                jsonHead["TransceiveMark"] = jsonTransceiveMark
                 jsonHead["MonitorEnable"] = jsonMonitorEnable
                 jsonHead["Monitor"] = jsonMonitorString
                 jsonHead = json.dumps(jsonHead)
-                self.stream_write("%s\n" % jsonHead)
-                self.stream_write(data)
+                self.stream_write("{}\n{}".format(jsonHead, data))
                 self.renderEvent.set()
                 continue
 
@@ -480,8 +497,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         # setDaemon必须在start() 方法调用之前设置，否则程序会被无限挂起。参数True表示主调线程为为守护线程，
         self.recvThread.setDaemon(True)
         self.recvThread.start()
-        #join在start()之后调用，参数为超时时间
-        #self.recvThread.join()
+        # join在start()之后调用，参数为超时时间
+        # self.recvThread.join()
         self.renderThread = threading.Thread(target=self.stream_renderThread, name='renderThread')
         self.renderThread.setDaemon(True)
         self.renderThread.start()
@@ -553,7 +570,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.serial_send_history_add(inputString)
             data=''
             hexData=''
-            if self.radioButtonSendASCII.isChecked():
+            if not self.sendHex.isChecked():
                 if len(inputString):
                     # 转义替换
                     if self.sendEscape.isChecked():
@@ -579,30 +596,46 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.InfoTx.setText('TX: {} Bytes'.format(self.txCount))
             else:
                 return
-            #发送回显
+            # 发送回显
             if self.checkBoxEcho.isChecked():
-                if self.radioButtonRecvASCII.isChecked():
+                if not self.dispHex.isChecked():
                     data = hexData.decode('gbk', errors='ignore')
                 else:
                     data = ''
                     for x in hexData:
                         data = data + '%02X '%x
                     data = data.lstrip()
-                #发送结束换行
+                # 发送结束换行
                 if data[-1] != '\n':
                     data = data + '\n'
-                #显示时间
+                # 显示时间
                 if self.checkBoxTime.isChecked():
                     jsonTimeEnable = 1
                     jsonTimestamp = '['+datetime.now().strftime('%H:%M:%S.%f') [:-3]+']'
                 else:
                     jsonTimeEnable = 0
                     jsonTimestamp = ''
+                # 自动换行
+                if self.checkBoxNewLine.isChecked():
+                    jsonLineEnable = 1
+                else:
+                    jsonLineEnable = 0
+                # 收发标记
+                if self.transceiveMark.isChecked():
+                    jsonTransceiveMark = 1
+                else:
+                    jsonTransceiveMark = 0
                 jsonRecv = 0
                 jsonDataLength = len(data)
-                jsonHead = '{"Received":%d, "Length":%d, "TimeEnable":%d, "Timestamp":"%s"}\n'%(jsonRecv, jsonDataLength, jsonTimeEnable, jsonTimestamp)
-                self.stream_write(jsonHead)
-                self.stream_write(data)
+                jsonHead = {}
+                jsonHead["Received"] = jsonRecv
+                jsonHead["Length"] = jsonDataLength
+                jsonHead["TimeEnable"] = jsonTimeEnable
+                jsonHead["Timestamp"] = jsonTimestamp
+                jsonHead["LineEnable"] = jsonLineEnable
+                jsonHead["TransceiveMark"] = jsonTransceiveMark
+                jsonHead = json.dumps(jsonHead)
+                self.stream_write("{}\n{}".format(jsonHead, data))
                 self.renderEvent.set()
 
     def serial_open(self):
@@ -663,7 +696,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.runStates = SERIAL_STOP
             self.run.setIcon(QIcon(':/icon/resource/icon/trist48.png'))
 
-    #端口刷新
+    # 端口刷新
     def serial_port_refresh(self):
         self.comboBoxPort.blockSignals(True)
         self.comboBoxPort.clear()
@@ -677,7 +710,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         if self.port is None:
             if self.comboBoxPort.count():
                 self.port = portNameList[self.comboBoxPort.currentIndex()]
-        if self.port not in portNameList:#端口移除
+        if self.port not in portNameList: # 端口移除
             print('{}: remove {}'.format(sys._getframe().f_code.co_name, self.port))
             self.serial_close()
         else:
@@ -772,13 +805,13 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.pushButtonSend.setText("停 止")
                 if not self.resendThread.is_alive():
                     self.resendThread = threading.Thread(target=self.serial_resendThread, name='resendThread')
-                    #join和setDaemon作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
-                    #如果都不设置，主线程和子线程各自运行，互不影响
-                    #setDaemon必须在start() 方法调用之前设置，否则程序会被无限挂起。参数True表示主调线程为为守护线程，
+                    # join和setDaemon作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
+                    # 如果都不设置，主线程和子线程各自运行，互不影响
+                    # setDaemon必须在start() 方法调用之前设置，否则程序会被无限挂起。参数True表示主调线程为为守护线程，
                     self.resendThread.setDaemon(True)
                     self.resendThread.start()
-                    #join在start()之后调用，参数为超时时间
-                    #self.resendThread.join()
+                    # join在start()之后调用，参数为超时时间
+                    # self.resendThread.join()
         else:
             self.serial_send()
 
@@ -959,32 +992,24 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.plainTextEdit.setPlainText(text)
 
     @Slot()
-    def on_radioButtonRecvASCII_pressed(self):
+    def on_dispHex_toggled(self):
         """
         Slot documentation goes here.
         """
-        self.settings.setValue('RecvFormat', 1)
+        if self.dispHex.isChecked():
+            self.settings.setValue('DisplayFormat', 1)
+        else:
+            self.settings.setValue('DisplayFormat', 0)
 
     @Slot()
-    def on_radioButtonRecvHex_pressed(self):
+    def on_sendHex_toggled(self):
         """
         Slot documentation goes here.
         """
-        self.settings.setValue('RecvFormat', 0)
-
-    @Slot()
-    def on_radioButtonSendASCII_pressed(self):
-        """
-        Slot documentation goes here.
-        """
-        self.settings.setValue('SendFormat', 1)
-
-    @Slot()
-    def on_radioButtonSendHex_pressed(self):
-        """
-        Slot documentation goes here.
-        """
-        self.settings.setValue('SendFormat', 0)
+        if self.sendHex.isChecked():
+            self.settings.setValue('SendFormat', 1)
+        else:
+            self.settings.setValue('SendFormat', 0)
 
     @Slot(bool)
     def on_actionAutoConnect_toggled(self, p0):
@@ -1027,12 +1052,18 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         codec.activateWindow()
 
     @Slot()
-    def on_about_triggered(self):
+    def on_outfile_triggered(self):
         """
         Slot documentation goes here.
         """
-        aboutSoft.show()
-        aboutSoft.softInfo.verticalScrollBar().setValue(0)
+        targetFileName, filetype = QFileDialog.getSaveFileName(self,
+                  "保存文件",
+                  "", 
+                  "Text Files (*.txt);;All Files (*)", )  # 设置文件扩展名过滤,注意用双分号间隔
+        if targetFileName=="":
+            return
+        with open(targetFileName, 'w') as f:
+            f.write(self.textBrowser.toPlainText())
 
     @Slot()
     def on_option_triggered(self):
@@ -1054,7 +1085,7 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             if self.horizontalLayout.indexOf(self.sideLayout) == -1:
                 self.horizontalLayout.insertLayout(0, self.sideLayout)
         else:
-            #horizontalLayout为应用于centralWidget的布局，从horizontalLayout删除即为从centralWidget删除
+            # horizontalLayout为应用于centralWidget的布局，从horizontalLayout删除即为从centralWidget删除
             self.horizontalLayout.removeItem(self.sideLayout)
         print('side view:', p0)
 
@@ -1077,9 +1108,9 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         """
         Slot documentation goes here.
         """
-        #设置栏
+        # 设置栏
         sideView = self.sideView.isChecked()
-        #发送栏
+        # 发送栏
         sendView = self.sendView.isChecked()
         if sideView == False and sendView:
             if self.horizontalLayout.indexOf(self.sideLayout) == -1:
@@ -1099,21 +1130,18 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.horizontalLayout.removeItem(self.sideLayout)
                 self.view_send_visible(False)
 
-    @Slot(bool)
-    def on_checkBoxNewLine_toggled(self, checked):
+    @Slot()
+    def on_checkBoxNewLine_toggled(self):
         """
         Slot documentation goes here.
-
-        @param checked DESCRIPTION
-        @type bool
         """
         if self.checkBoxNewLine.isChecked():
             self.settings.setValue('AutoWrap', 1)
         else:
             self.settings.setValue('AutoWrap', 0)
 
-    @Slot(bool)
-    def on_checkBoxEcho_toggled(self, checked):
+    @Slot()
+    def on_checkBoxEcho_toggled(self):
         """
         Slot documentation goes here.
 
@@ -1124,6 +1152,19 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             self.settings.setValue('Echo', 1)
         else:
             self.settings.setValue('Echo', 0)
+
+    @Slot()
+    def on_transceiveMark_toggled(self):
+        """
+        Slot documentation goes here.
+
+        @param checked DESCRIPTION
+        @type bool
+        """
+        if self.transceiveMark.isChecked():
+            self.settings.setValue('TransceiveMark', 1)
+        else:
+            self.settings.setValue('TransceiveMark', 0)
 
     @Slot(bool)
     def on_checkBoxTime_toggled(self, checked):
@@ -1209,8 +1250,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
 
 class SysEventFilter(QAbstractNativeEventFilter):
     def __init__(self, dlg):
-        #如果直接在主类中写nativeEventFilter，调用此初始化会出问题
-        #推测和super()调用有关系
+        # 如果直接在主类中写nativeEventFilter，调用此初始化会出问题
+        # 推测和super()调用有关系
         QAbstractNativeEventFilter.__init__(self)
         self.dlg = dlg
 
@@ -1237,14 +1278,13 @@ class SysEventFilter(QAbstractNativeEventFilter):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setStyle("WindowsVista")
+    app.setStyle("windowsvista")
     app.setWindowIcon(QIcon(':/icon/resource/icon/serial256.ico'))
     dlg = SerialPort()
     dlg.show()
     sysMsg = SysEventFilter(dlg)
     app.installNativeEventFilter(sysMsg)
     codec = Codec()
-    aboutSoft=About()
     ret = app.exec()
     print('Exit', ret)
     sys.exit(ret)

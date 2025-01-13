@@ -38,6 +38,8 @@ class Option(QWidget, Ui_Option):
         self.softInfo.append('串口：添加清屏')
         self.softInfo.append('串口：添加连接监测')
         self.softInfo.append('串口：解决接收上限清除时的崩溃问题')
+        self.softInfo.append('串口：添加收发标记')
+        self.softInfo.append('串口：添加文件导出')
         self.softInfo.append('编码器：添加异或校验')
         self.softInfo.append('编码器：添加和校验')
         self.softInfo.append('\n版本历史')

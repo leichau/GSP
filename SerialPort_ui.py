@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'SerialPort.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.2
+## Created by: Qt User Interface Compiler version 6.8.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -19,9 +19,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
 from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QComboBox,
     QFrame, QGroupBox, QHBoxLayout, QLCDNumber,
     QLabel, QLineEdit, QMainWindow, QPlainTextEdit,
-    QPushButton, QRadioButton, QSizePolicy, QSpacerItem,
-    QSpinBox, QStatusBar, QTextBrowser, QToolBar,
-    QVBoxLayout, QWidget)
+    QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
+    QStatusBar, QTextBrowser, QToolBar, QVBoxLayout,
+    QWidget)
 import imgResource_rc
 
 class Ui_MainWindow(object):
@@ -44,22 +44,17 @@ class Ui_MainWindow(object):
         icon2 = QIcon()
         icon2.addFile(u":/icon/resource/icon/codec48.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.codec.setIcon(icon2)
-        self.about = QAction(MainWindow)
-        self.about.setObjectName(u"about")
-        icon3 = QIcon()
-        icon3.addFile(u":/icon/resource/icon/setting48.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.about.setIcon(icon3)
         self.clear = QAction(MainWindow)
         self.clear.setObjectName(u"clear")
-        icon4 = QIcon()
-        icon4.addFile(u":/icon/resource/icon/clean48.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.clear.setIcon(icon4)
+        icon3 = QIcon()
+        icon3.addFile(u":/icon/resource/icon/clean48.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.clear.setIcon(icon3)
         self.actionAutoConnect = QAction(MainWindow)
         self.actionAutoConnect.setObjectName(u"actionAutoConnect")
         self.actionAutoConnect.setCheckable(True)
-        icon5 = QIcon()
-        icon5.addFile(u":/icon/resource/icon/link48.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.actionAutoConnect.setIcon(icon5)
+        icon4 = QIcon()
+        icon4.addFile(u":/icon/resource/icon/link48.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.actionAutoConnect.setIcon(icon4)
         self.sideView = QAction(MainWindow)
         self.sideView.setObjectName(u"sideView")
         self.sideView.setCheckable(True)
@@ -70,7 +65,14 @@ class Ui_MainWindow(object):
         self.sendView.setChecked(True)
         self.option = QAction(MainWindow)
         self.option.setObjectName(u"option")
-        self.option.setIcon(icon3)
+        icon5 = QIcon()
+        icon5.addFile(u":/icon/resource/icon/setting48.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.option.setIcon(icon5)
+        self.outfile = QAction(MainWindow)
+        self.outfile.setObjectName(u"outfile")
+        icon6 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.GoDown))
+        self.outfile.setIcon(icon6)
+        self.outfile.setMenuRole(QAction.MenuRole.TextHeuristicRole)
         self.centralWidget = QWidget(MainWindow)
         self.centralWidget.setObjectName(u"centralWidget")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
@@ -137,8 +139,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.comboBoxPort = QComboBox(self.groupBoxPort)
         self.comboBoxPort.setObjectName(u"comboBoxPort")
-        sizePolicy.setHeightForWidth(self.comboBoxPort.sizePolicy().hasHeightForWidth())
-        self.comboBoxPort.setSizePolicy(sizePolicy)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.comboBoxPort.sizePolicy().hasHeightForWidth())
+        self.comboBoxPort.setSizePolicy(sizePolicy1)
 
         self.verticalLayout_5.addWidget(self.comboBoxPort)
 
@@ -195,46 +200,56 @@ class Ui_MainWindow(object):
         self.verticalLayout_6 = QVBoxLayout(self.groupBoxRecv)
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
         self.verticalLayout_6.setContentsMargins(-1, 5, 7, 5)
-        self.horizontalLayout_4 = QHBoxLayout()
-        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.radioButtonRecvASCII = QRadioButton(self.groupBoxRecv)
-        self.radioButtonRecvASCII.setObjectName(u"radioButtonRecvASCII")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.radioButtonRecvASCII.sizePolicy().hasHeightForWidth())
-        self.radioButtonRecvASCII.setSizePolicy(sizePolicy1)
-
-        self.horizontalLayout_4.addWidget(self.radioButtonRecvASCII)
-
-        self.radioButtonRecvHex = QRadioButton(self.groupBoxRecv)
-        self.radioButtonRecvHex.setObjectName(u"radioButtonRecvHex")
-        sizePolicy1.setHeightForWidth(self.radioButtonRecvHex.sizePolicy().hasHeightForWidth())
-        self.radioButtonRecvHex.setSizePolicy(sizePolicy1)
-
-        self.horizontalLayout_4.addWidget(self.radioButtonRecvHex)
-
-
-        self.verticalLayout_6.addLayout(self.horizontalLayout_4)
-
         self.horizontalLayout_9 = QHBoxLayout()
         self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
         self.checkBoxTime = QCheckBox(self.groupBoxRecv)
         self.checkBoxTime.setObjectName(u"checkBoxTime")
-        sizePolicy1.setHeightForWidth(self.checkBoxTime.sizePolicy().hasHeightForWidth())
-        self.checkBoxTime.setSizePolicy(sizePolicy1)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.checkBoxTime.sizePolicy().hasHeightForWidth())
+        self.checkBoxTime.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_9.addWidget(self.checkBoxTime)
 
         self.checkBoxNewLine = QCheckBox(self.groupBoxRecv)
         self.checkBoxNewLine.setObjectName(u"checkBoxNewLine")
-        sizePolicy1.setHeightForWidth(self.checkBoxNewLine.sizePolicy().hasHeightForWidth())
-        self.checkBoxNewLine.setSizePolicy(sizePolicy1)
+        sizePolicy2.setHeightForWidth(self.checkBoxNewLine.sizePolicy().hasHeightForWidth())
+        self.checkBoxNewLine.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_9.addWidget(self.checkBoxNewLine)
 
 
         self.verticalLayout_6.addLayout(self.horizontalLayout_9)
+
+        self.horizontalLayout_11 = QHBoxLayout()
+        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
+        self.checkBoxEcho = QCheckBox(self.groupBoxRecv)
+        self.checkBoxEcho.setObjectName(u"checkBoxEcho")
+        sizePolicy2.setHeightForWidth(self.checkBoxEcho.sizePolicy().hasHeightForWidth())
+        self.checkBoxEcho.setSizePolicy(sizePolicy2)
+
+        self.horizontalLayout_11.addWidget(self.checkBoxEcho)
+
+        self.transceiveMark = QCheckBox(self.groupBoxRecv)
+        self.transceiveMark.setObjectName(u"transceiveMark")
+        sizePolicy2.setHeightForWidth(self.transceiveMark.sizePolicy().hasHeightForWidth())
+        self.transceiveMark.setSizePolicy(sizePolicy2)
+
+        self.horizontalLayout_11.addWidget(self.transceiveMark)
+
+
+        self.verticalLayout_6.addLayout(self.horizontalLayout_11)
+
+        self.horizontalLayout_12 = QHBoxLayout()
+        self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
+        self.dispHex = QCheckBox(self.groupBoxRecv)
+        self.dispHex.setObjectName(u"dispHex")
+
+        self.horizontalLayout_12.addWidget(self.dispHex)
+
+
+        self.verticalLayout_6.addLayout(self.horizontalLayout_12)
 
 
         self.sideLayout.addWidget(self.groupBoxRecv)
@@ -247,48 +262,29 @@ class Ui_MainWindow(object):
         self.verticalLayout = QVBoxLayout(self.groupBoxSend)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(-1, 5, 7, 5)
-        self.horizontalLayout_7 = QHBoxLayout()
-        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.radioButtonSendASCII = QRadioButton(self.groupBoxSend)
-        self.radioButtonSendASCII.setObjectName(u"radioButtonSendASCII")
-        sizePolicy1.setHeightForWidth(self.radioButtonSendASCII.sizePolicy().hasHeightForWidth())
-        self.radioButtonSendASCII.setSizePolicy(sizePolicy1)
+        self.horizontalLayout_13 = QHBoxLayout()
+        self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
+        self.sendHex = QCheckBox(self.groupBoxSend)
+        self.sendHex.setObjectName(u"sendHex")
 
-        self.horizontalLayout_7.addWidget(self.radioButtonSendASCII)
+        self.horizontalLayout_13.addWidget(self.sendHex)
 
-        self.radioButtonSendHex = QRadioButton(self.groupBoxSend)
-        self.radioButtonSendHex.setObjectName(u"radioButtonSendHex")
-        sizePolicy1.setHeightForWidth(self.radioButtonSendHex.sizePolicy().hasHeightForWidth())
-        self.radioButtonSendHex.setSizePolicy(sizePolicy1)
+        self.sendReturn = QCheckBox(self.groupBoxSend)
+        self.sendReturn.setObjectName(u"sendReturn")
+        sizePolicy2.setHeightForWidth(self.sendReturn.sizePolicy().hasHeightForWidth())
+        self.sendReturn.setSizePolicy(sizePolicy2)
 
-        self.horizontalLayout_7.addWidget(self.radioButtonSendHex)
+        self.horizontalLayout_13.addWidget(self.sendReturn)
 
 
-        self.verticalLayout.addLayout(self.horizontalLayout_7)
-
-        self.checkBoxEcho = QCheckBox(self.groupBoxSend)
-        self.checkBoxEcho.setObjectName(u"checkBoxEcho")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.checkBoxEcho.sizePolicy().hasHeightForWidth())
-        self.checkBoxEcho.setSizePolicy(sizePolicy2)
-
-        self.verticalLayout.addWidget(self.checkBoxEcho)
+        self.verticalLayout.addLayout(self.horizontalLayout_13)
 
         self.horizontalLayout_10 = QHBoxLayout()
         self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
-        self.sendReturn = QCheckBox(self.groupBoxSend)
-        self.sendReturn.setObjectName(u"sendReturn")
-        sizePolicy1.setHeightForWidth(self.sendReturn.sizePolicy().hasHeightForWidth())
-        self.sendReturn.setSizePolicy(sizePolicy1)
-
-        self.horizontalLayout_10.addWidget(self.sendReturn)
-
         self.sendEscape = QCheckBox(self.groupBoxSend)
         self.sendEscape.setObjectName(u"sendEscape")
-        sizePolicy1.setHeightForWidth(self.sendEscape.sizePolicy().hasHeightForWidth())
-        self.sendEscape.setSizePolicy(sizePolicy1)
+        sizePolicy2.setHeightForWidth(self.sendEscape.sizePolicy().hasHeightForWidth())
+        self.sendEscape.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_10.addWidget(self.sendEscape)
 
@@ -299,15 +295,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
         self.checkBoxResend = QCheckBox(self.groupBoxSend)
         self.checkBoxResend.setObjectName(u"checkBoxResend")
-        sizePolicy1.setHeightForWidth(self.checkBoxResend.sizePolicy().hasHeightForWidth())
-        self.checkBoxResend.setSizePolicy(sizePolicy1)
+        sizePolicy2.setHeightForWidth(self.checkBoxResend.sizePolicy().hasHeightForWidth())
+        self.checkBoxResend.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_8.addWidget(self.checkBoxResend)
 
         self.spinBoxTime = QSpinBox(self.groupBoxSend)
         self.spinBoxTime.setObjectName(u"spinBoxTime")
-        sizePolicy1.setHeightForWidth(self.spinBoxTime.sizePolicy().hasHeightForWidth())
-        self.spinBoxTime.setSizePolicy(sizePolicy1)
+        sizePolicy2.setHeightForWidth(self.spinBoxTime.sizePolicy().hasHeightForWidth())
+        self.spinBoxTime.setSizePolicy(sizePolicy2)
         self.spinBoxTime.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.UpDownArrows)
         self.spinBoxTime.setMinimum(10)
         self.spinBoxTime.setMaximum(1000000000)
@@ -336,8 +332,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
         self.checkBoxBeep = QCheckBox(self.groupBox)
         self.checkBoxBeep.setObjectName(u"checkBoxBeep")
-        sizePolicy1.setHeightForWidth(self.checkBoxBeep.sizePolicy().hasHeightForWidth())
-        self.checkBoxBeep.setSizePolicy(sizePolicy1)
+        sizePolicy2.setHeightForWidth(self.checkBoxBeep.sizePolicy().hasHeightForWidth())
+        self.checkBoxBeep.setSizePolicy(sizePolicy2)
 
         self.horizontalLayout_6.addWidget(self.checkBoxBeep)
 
@@ -488,8 +484,8 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusBar)
         self.toolBar = QToolBar(MainWindow)
         self.toolBar.setObjectName(u"toolBar")
-        sizePolicy1.setHeightForWidth(self.toolBar.sizePolicy().hasHeightForWidth())
-        self.toolBar.setSizePolicy(sizePolicy1)
+        sizePolicy2.setHeightForWidth(self.toolBar.sizePolicy().hasHeightForWidth())
+        self.toolBar.setSizePolicy(sizePolicy2)
         self.toolBar.setIconSize(QSize(40, 40))
         MainWindow.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolBar)
 
@@ -498,6 +494,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionAutoConnect)
         self.toolBar.addAction(self.clear)
         self.toolBar.addSeparator()
+        self.toolBar.addAction(self.outfile)
         self.toolBar.addAction(self.option)
         self.toolBar.addAction(self.codec)
 
@@ -511,7 +508,6 @@ class Ui_MainWindow(object):
         self.run.setText(QCoreApplication.translate("MainWindow", u"\u8fd0\u884c", None))
         self.stop.setText(QCoreApplication.translate("MainWindow", u"\u505c\u6b62", None))
         self.codec.setText(QCoreApplication.translate("MainWindow", u"\u7f16\u7801\u8f6c\u6362", None))
-        self.about.setText(QCoreApplication.translate("MainWindow", u"\u5173\u4e8e", None))
         self.clear.setText(QCoreApplication.translate("MainWindow", u"\u6e05\u5c4f", None))
 #if QT_CONFIG(tooltip)
         self.clear.setToolTip(QCoreApplication.translate("MainWindow", u"\u6e05\u5c4f\uff08Ctrl+Delete\uff09", None))
@@ -526,6 +522,10 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.option.setToolTip(QCoreApplication.translate("MainWindow", u"\u8bbe\u7f6e", None))
 #endif // QT_CONFIG(tooltip)
+        self.outfile.setText(QCoreApplication.translate("MainWindow", u"\u5bfc\u51fa", None))
+#if QT_CONFIG(tooltip)
+        self.outfile.setToolTip(QCoreApplication.translate("MainWindow", u"\u5bfc\u51fa\u6587\u4ef6", None))
+#endif // QT_CONFIG(tooltip)
         self.groupBoxPort.setTitle(QCoreApplication.translate("MainWindow", u"\u4e32\u53e3\u8bbe\u7f6e", None))
         self.labelPort.setText(QCoreApplication.translate("MainWindow", u"\u7aef    \u53e3", None))
         self.labelBaud.setText(QCoreApplication.translate("MainWindow", u"\u6ce2\u7279\u7387", None))
@@ -534,14 +534,13 @@ class Ui_MainWindow(object):
         self.labelStopBit.setText(QCoreApplication.translate("MainWindow", u"\u505c\u6b62\u4f4d", None))
         self.labelFlow.setText(QCoreApplication.translate("MainWindow", u"\u6d41    \u63a7", None))
         self.groupBoxRecv.setTitle(QCoreApplication.translate("MainWindow", u"\u663e\u793a\u8bbe\u7f6e", None))
-        self.radioButtonRecvASCII.setText(QCoreApplication.translate("MainWindow", u"ASCII", None))
-        self.radioButtonRecvHex.setText(QCoreApplication.translate("MainWindow", u"HEX", None))
         self.checkBoxTime.setText(QCoreApplication.translate("MainWindow", u"\u663e\u793a\u65f6\u95f4", None))
         self.checkBoxNewLine.setText(QCoreApplication.translate("MainWindow", u"\u81ea\u52a8\u6362\u884c", None))
-        self.groupBoxSend.setTitle(QCoreApplication.translate("MainWindow", u"\u53d1\u9001\u8bbe\u7f6e", None))
-        self.radioButtonSendASCII.setText(QCoreApplication.translate("MainWindow", u"ASCII", None))
-        self.radioButtonSendHex.setText(QCoreApplication.translate("MainWindow", u"HEX", None))
         self.checkBoxEcho.setText(QCoreApplication.translate("MainWindow", u"\u663e\u793a\u53d1\u9001", None))
+        self.transceiveMark.setText(QCoreApplication.translate("MainWindow", u"\u6536\u53d1\u6807\u8bb0", None))
+        self.dispHex.setText(QCoreApplication.translate("MainWindow", u"\u5341\u516d\u8fdb\u5236", None))
+        self.groupBoxSend.setTitle(QCoreApplication.translate("MainWindow", u"\u53d1\u9001\u8bbe\u7f6e", None))
+        self.sendHex.setText(QCoreApplication.translate("MainWindow", u"\u5341\u516d\u8fdb\u5236", None))
         self.sendReturn.setText(QCoreApplication.translate("MainWindow", u"\u6dfb\u52a0\u6362\u884c", None))
         self.sendEscape.setText(QCoreApplication.translate("MainWindow", u"\u8f6c\u4e49 \\r \\n", None))
         self.checkBoxResend.setText(QCoreApplication.translate("MainWindow", u"\u81ea\u52a8\u91cd\u53d1", None))
