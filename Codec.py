@@ -124,13 +124,6 @@ class Codec(QMainWindow, Ui_Codec):
             inputData=self.inputText.toPlainText()
             inputData = inputData.replace('\n', '\r\n')
             self.InputInfo.setText('输入: %d' % len(inputData))
-        elif self.inputType.currentText()=='unicode':
-            inputData=''
-            charList=self.hexExtract()
-            i=0
-            while len(charList)-i>=2: # 切片成功
-                inputData+=chr(charList[i]*256+charList[i+1])
-                i += 2
         elif self.inputType.currentText()=='十进制':
             inputData=''
             charList=self.decExtract()
@@ -146,6 +139,9 @@ class Codec(QMainWindow, Ui_Codec):
             charList=self.binExtract()
             for x in charList:
                 inputData+=chr(x)
+        elif self.inputType.currentText()=='unicode':
+            # 将 unicode 转义格式的字节流解码为字符串
+            inputData = self.unicodeExtract().decode('unicode_escape')
         elif self.inputType.currentText()=='utf-8':
             inputData=self.hexExtract().decode('utf8', errors='ignore')
         elif self.inputType.currentText()=='utf-16':
@@ -206,7 +202,34 @@ class Codec(QMainWindow, Ui_Codec):
             i += 8
         self.InputInfo.setText('输入: %d' % len(inputData))
         return bytes(inputData) # 返回字节流
-    
+
+    # Unicode 输入数据提取
+    def unicodeExtract(self):
+        inputRaw = self.inputText.toPlainText()
+        if re.search(r'[\\u|\\U|\s]', inputRaw):
+            pattern = re.compile(r'[0-9a-fA-F]{1,6}')
+        else:
+            pattern = re.compile(r'[0-9a-fA-F]{4}')
+        unicodeArray = pattern.findall(inputRaw)
+        if len(unicodeArray) == 0:
+            print('unicode data invalid!')
+            return b''
+        unicodeStrList = []
+        for item in unicodeArray:
+            value = int(item, 16)
+            if value > 0x10FFFF:
+                unicodeStrList.append('\\u{:0>4X}'.format(value>>8))
+                unicodeStrList.append('\\u{:0>4X}'.format(value & 0xFF))
+            elif value > 0xFFFF:
+                unicodeStrList.append('\\U{:0>8X}'.format(value))
+            else:
+                unicodeStrList.append('\\u{:0>4X}'.format(value))
+        # 将字符串编码为 Unicode 转义格式的字节流，如‘测试’转为 b'\\u6d4b\\u8bd5'
+        unicodeEscape = ''.join(unicodeStrList).encode('latin-1')
+        # print(unicodeEscape)
+        self.InputInfo.setText('输入: %d' % len(unicodeStrList))
+        return unicodeEscape
+
     # input为输入字符串
     def setOutputDevice(self, inputData):
         if self.checkBoxDivOutput.checkState()==Qt.Checked:
@@ -224,8 +247,8 @@ class Codec(QMainWindow, Ui_Codec):
             charList=[]
             for x in inputData:
                 value=ord(x)
-                charList.append('%02X%02X'%(value//256, value%256))
-            self.OutputInfo.setText('输出: %d' % (len(charList)*2))
+                charList.append('%04X'%(value))
+            self.OutputInfo.setText('输出: %d' % (len(charList)))
             outputData=div.join(pre+x for x in charList)
         elif self.outputType.currentText()=='十进制':
             charList=[]

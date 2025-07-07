@@ -42,6 +42,7 @@ class Option(QWidget, Ui_Option):
         self.softInfo.append('串口：添加文件导出')
         self.softInfo.append('编码器：添加异或校验')
         self.softInfo.append('编码器：添加和校验')
+        self.softInfo.append('编码器：Unicode 支持三字节码点')
         self.softInfo.append('\n版本历史')
         self.softInfo.append('---------------------------------------------------')
         self.softInfo.append('0.1.4\t2020-03-20')
