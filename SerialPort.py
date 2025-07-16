@@ -247,6 +247,14 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         # 异常捕获
         sys.excepthook = self.unknown_exceptions
 
+    # 万位分隔符
+    def wan_separator(self, num):
+        s = str(num)
+        if s[0] == '-':
+            return '-' + re.sub(r'(\d)(?=(\d{4})+$)', r'\1,', s[1:])
+        else:
+            return re.sub(r'(\d)(?=(\d{4})+$)', r'\1,', s)
+
     # 未知异常捕获
     def unknown_exceptions(self, ExceptType, ExceptValue, Traceback):
         traceback_format = traceback.format_exception(ExceptType, ExceptValue, Traceback)
@@ -284,7 +292,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
         self.lcdNumber.display(num)
 
     def rxCntUpdate(self, cnt):
-        self.InfoRx.setText('RX: {} Bytes'.format(cnt))
+        num = self.wan_separator(cnt)
+        self.InfoRx.setText('RX: {} Bytes'.format(num))
 
     # html 特殊字符处理
     def htmlCharProcess(self, data):
@@ -492,15 +501,15 @@ class SerialPort(QMainWindow, Ui_MainWindow):
     def serial_recvThreadStart(self):
         self.recvThreadState = True
         self.recvThread = threading.Thread(target=self.serial_recvThread, name='recvThread')
-        # join 和 setDaemon 作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
+        # join 和 daemon 作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
         # 如果都不设置，主线程和子线程各自运行，互不影响
-        # setDaemon必须在start() 方法调用之前设置，否则程序会被无限挂起。参数True表示主调线程为为守护线程，
-        self.recvThread.setDaemon(True)
+        # daemon 必须在 start() 方法调用之前设置，否则程序会被无限挂起。True 表示主调线程为为守护线程，
+        self.recvThread.daemon = True
         self.recvThread.start()
-        # join在start()之后调用，参数为超时时间
+        # join 在start() 之后调用，参数为超时时间
         # self.recvThread.join()
         self.renderThread = threading.Thread(target=self.stream_renderThread, name='renderThread')
-        self.renderThread.setDaemon(True)
+        self.renderThread.daemon = True
         self.renderThread.start()
 
     def serial_recvThreadEnd(self):
@@ -593,7 +602,8 @@ class SerialPort(QMainWindow, Ui_MainWindow):
             if len(hexData):
                 self.serial.write(hexData)
                 self.txCount += len(hexData)
-                self.InfoTx.setText('TX: {} Bytes'.format(self.txCount))
+                num = self.wan_separator(self.txCount)
+                self.InfoTx.setText('TX: {} Bytes'.format(num))
             else:
                 return
             # 发送回显
@@ -805,12 +815,12 @@ class SerialPort(QMainWindow, Ui_MainWindow):
                 self.pushButtonSend.setText("停 止")
                 if not self.resendThread.is_alive():
                     self.resendThread = threading.Thread(target=self.serial_resendThread, name='resendThread')
-                    # join和setDaemon作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
+                    # join 和 daemon 作用相反，前者等待子线程结束，后者不等子线程结束，有可能把子线程强制结束。
                     # 如果都不设置，主线程和子线程各自运行，互不影响
-                    # setDaemon必须在start() 方法调用之前设置，否则程序会被无限挂起。参数True表示主调线程为为守护线程，
-                    self.resendThread.setDaemon(True)
+                    # daemon 必须在 start() 方法调用之前设置，否则程序会被无限挂起。True 表示主调线程为为守护线程，
+                    self.resendThread.daemon = True
                     self.resendThread.start()
-                    # join在start()之后调用，参数为超时时间
+                    # join 在 start()之后调用，参数为超时时间
                     # self.resendThread.join()
         else:
             self.serial_send()

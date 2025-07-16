@@ -156,34 +156,36 @@ class Codec(QMainWindow, Ui_Codec):
     
     # 十进制输入数据提取，返回字节流
     def decExtract(self): 
-        char=self.inputText.toPlainText()
-        if self.checkBoxPreInput.checkState()==Qt.Checked:            
-            char=char.replace(self.lineEditPreInput.text(), '')
-        if self.checkBoxDivInput.checkState()==Qt.Checked:
-            char=char.replace(self.lineEditDivInput.text(), '')
-        pattern=r"\s*[^0-9]*"
+        inputRaw = self.inputText.toPlainText()
+        if self.checkBoxPreInput.checkState() == Qt.Checked:            
+            inputRaw = inputRaw.replace(self.lineEditPreInput.text(), '')
+        if self.checkBoxDivInput.checkState() == Qt.Checked:
+            inputRaw = inputRaw.replace(self.lineEditDivInput.text(), '')
+        # 最大提取 20 位数
+        pattern = re.compile(r'[0-9]{1,20}')
+        print(pattern.findall(inputRaw))
         inputData = []
-        for x in re.split(pattern, char):
-            if len(x):
-                if int(x)//256:
-                    inputData.append(int(x)//256)
-                inputData.append(int(x)%256)
+        for x in pattern.findall(inputRaw):
+            valueStr = '{:X}'.format(int(x))
+            if len(valueStr) % 2 == 1:
+                valueStr = '0' + valueStr
+            i = 0
+            while valueStr and valueStr[i:i+2]:# 切片成功
+                inputData.append(int(valueStr[i:i+2], 16))
+                i += 2
         self.InputInfo.setText('输入: %d' % len(inputData))
         return bytes(inputData) # 返回字节流
     
     # 十六进制输入数据提取，返回字节流
     def hexExtract(self): 
-        char=self.inputText.toPlainText()
-        if self.checkBoxPreInput.checkState()==Qt.Checked:            
-            char=char.replace(self.lineEditPreInput.text(), '')
-        if self.checkBoxDivInput.checkState()==Qt.Checked:
-            char=char.replace(self.lineEditDivInput.text(), '')
-        # 前一个'\\\\'：表示正则表达式里的一个斜杠，前两个表示转义斜杠，后两个表示要查找的斜杠
-        # 后一个'\\\\'放到字符串里后表现为两个字符串
-        # pattern=re.sub('\\\\', r'\\', pattern)
+        inputRaw = self.inputText.toPlainText()
+        if self.checkBoxPreInput.checkState() == Qt.Checked:            
+            inputRaw = inputRaw.replace(self.lineEditPreInput.text(), '')
+        if self.checkBoxDivInput.checkState() == Qt.Checked:
+            inputRaw = inputRaw.replace(self.lineEditDivInput.text(), '')
         pattern=r"[^0-9a-fA-F]+"
         inputData = []
-        for x in re.split(pattern, char):
+        for x in re.split(pattern, inputRaw):
             i=0
             while x and x[i:i+2]:# 切片成功
                 inputData.append(int(x[i:i+2], 16))
